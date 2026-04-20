@@ -2,7 +2,6 @@
 #define WATCHY_SCREENS_MULTIDAY_H
 
 #include <stdint.h>
-#include <string.h>
 
 // Per-bar state for the 7-night history.
 struct MultidayBar {
@@ -30,22 +29,8 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
     const int W = 176;
     const int H = 136;
     const uint16_t BLACK = 0x0000;
-    const uint16_t WHITE = 0xFFFF;
 
-    // 1. Octagonal frame (chamfered 16px corners).
-    const int C = 16;
-    display.drawFastHLine(ox + C,        oy,           W - 2*C, BLACK);
-    display.drawFastHLine(ox + C,        oy + H - 1,   W - 2*C, BLACK);
-    for (int dy = 0; dy < H; ++dy) {
-        int x0 = ox;
-        int x1 = ox + W - 1;
-        if (dy < C)            { x0 += (C - dy); x1 -= (C - dy); }
-        else if (dy >= H - C)  { int d = dy - (H - C) + 1; x0 += d; x1 -= d; }
-        display.drawPixel(x0, oy + dy, BLACK);
-        display.drawPixel(x1, oy + dy, BLACK);
-    }
-
-    // 2. Title "NIGHTS" centered at top (default font, height ~8).
+    // Title "NIGHTS" centered at top (default font, height ~8).
     display.setTextColor(BLACK);
     {
         int16_t bx, by; uint16_t bw, bh;
@@ -118,27 +103,6 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
         int y1 = hourToY(wakeOff);
         if (y0 > y1) { int t = y0; y0 = y1; y1 = t; }
         display.fillRect(bx, y0, barW, y1 - y0 + 1, BLACK);
-
-        // Inside markers on the solid fill.
-        // check mark (simple V shape) near top of solid region
-        if (data.bars[i].check) {
-            int cx = bx + barW/2;
-            int cy = y0 + 6;
-            display.drawLine(cx - 3, cy - 1, cx - 1, cy + 2, WHITE);
-            display.drawLine(cx - 1, cy + 2, cx + 3, cy - 3, WHITE);
-        }
-        // '+' and '-' markers
-        if (data.bars[i].deltaUp) {
-            int cx = bx + barW/2;
-            int cy = y0 + (y1 - y0)/4;
-            display.drawFastHLine(cx - 2, cy, 5, WHITE);
-            display.drawLine(cx, cy - 2, cx, cy + 2, WHITE);
-        }
-        if (data.bars[i].deltaDown) {
-            int cx = bx + barW/2;
-            int cy = y1 - (y1 - y0)/4;
-            display.drawFastHLine(cx - 2, cy, 5, WHITE);
-        }
     }
 
     // 6. Midnight line (strong horizontal across chart).
@@ -157,12 +121,6 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
         }
     }
 
-    // 8. Small right-pointing triangle on left edge, between "12" and "0" labels
-    //    (design accent from reference, sits ~25% down the chart).
-    int ty = chartTop + (chartMid - chartTop) / 2;
-    display.fillTriangle(chartLeft - 10, ty - 3,
-                         chartLeft - 10, ty + 3,
-                         chartLeft - 5,  ty,     BLACK);
 }
 
 #endif // WATCHY_SCREENS_MULTIDAY_H

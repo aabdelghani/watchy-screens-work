@@ -55,10 +55,11 @@ inline MultidayData MockState::currentMultiday() const {
     const float basedBed[7]  = { 22.5f, 23.0f, 22.0f, 23.5f, 23.25f, 0.5f,  22.75f };
     const float basedWake[7] = {  7.0f,  6.5f,  8.0f,  7.5f,  6.75f, 7.25f, 6.25f };
     for (int i = 0; i < 7; ++i) {
-        float phase = (frame_ + i * 3) * 0.12f;
-        float wobble = 0.8f * (0.5f - 0.5f * cosf(phase));
-        d.bars[i].bedtime   = basedBed[i] - wobble;
-        d.bars[i].wakeup    = basedWake[i] + wobble;
+        float phase = (frame_ + i * 5) * 0.55f;
+        float bedSwing  = 4.0f * sinf(phase);
+        float wakeSwing = 4.0f * sinf(phase + 1.3f);
+        d.bars[i].bedtime   = basedBed[i] - bedSwing;
+        d.bars[i].wakeup    = basedWake[i] + wakeSwing;
         d.bars[i].check     = ((frame_ + i) / 5) % 2;
         d.bars[i].deltaUp   = ((frame_ + i) % 6) < 3;
         d.bars[i].deltaDown = !d.bars[i].deltaUp;
