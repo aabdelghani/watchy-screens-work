@@ -1,6 +1,6 @@
 #include "stats.h"
 
-// Explicit instantiation for the hardware display class.
-// Add more instantiations here if you port to another simulator / wrapper.
-#include <GxEPD2_GFX.h>
-template void drawStatsFace<GxEPD2_GFX>(GxEPD2_GFX&, int, int, const StatsData&);
+// The renderer is a header-only template (see stats.h) so it works with both
+// hardware GxEPD2 displays and simulator wrapper classes.
+// This .cpp file exists to satisfy the "one .h / .cpp pair per face" rule.
+

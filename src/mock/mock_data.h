@@ -47,10 +47,9 @@ inline void MockState::scrollText(char* out, int len, uint32_t offset) {
 
 inline MultidayData MockState::currentMultiday() const {
     MultidayData d{};
-    scrollText(titleBuf_, 6, frame_);
-    scrollText(dayBuf_, 7, frame_);
-    d.title      = titleBuf_;
-    d.dayLabels  = dayBuf_;
+    // Static title + day labels for demo; bars wobble and dot advances.
+    d.title      = "NIGHTS";
+    d.dayLabels  = "MTWTFSS";
     d.currentDay = (frame_ / 20) % 7; // dot moves every ~20s in real time
 
     const float basedBed[7]  = { 22.5f, 23.0f, 22.0f, 23.5f, 23.25f, 0.5f,  22.75f };
