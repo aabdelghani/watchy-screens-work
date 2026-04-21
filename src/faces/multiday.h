@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#include "../fonts/MinecraftBold6pt7b.h"
+#include "../fonts/RainyHearts6pt7b.h"
+
 // Per-bar state for the 7-night actogram.
 struct MultidayBar {
     float bedtime;    // 24h float, e.g. 22.75 = 10:45 PM
@@ -54,7 +57,8 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
 
     display.setTextColor(BLACK);
 
-    // Title — baseline y=23, centered on x=87.
+    // Title — baseline y=23, centered on x=87. RainyHearts for letters.
+    display.setFont(&rainyhearts6pt7b);
     {
         int16_t bx, by; uint16_t bw, bh;
         display.getTextBounds(data.title, 0, 0, &bx, &by, &bw, &bh);
@@ -62,6 +66,8 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
         display.print(data.title);
     }
 
+    // Axis labels — MinecraftBold 6pt has readable "1" (flagged top, no foot).
+    display.setFont(&MinecraftBold_nMK16pt7b);
     auto labelAt = [&](int x, int yBase, const char* s, bool rightAlign) {
         int16_t bx, by; uint16_t bw, bh;
         display.getTextBounds(s, 0, 0, &bx, &by, &bw, &bh);
@@ -136,7 +142,8 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
     // Midline (LINE layer overruns the chart by 3 px each side).
     display.drawFastHLine(lineLeft, chartMid, lineRight - lineLeft + 1, BLACK);
 
-    // Day letters centered under each column, baseline y=110.
+    // Day letters centered under each column, baseline y=110. Back to rainyhearts.
+    display.setFont(&rainyhearts6pt7b);
     for (int i = 0; i < 7; ++i) {
         int bx = chartLeft + i * barStride + barW / 2;
         char s[2] = { data.dayLabels[i], 0 };
