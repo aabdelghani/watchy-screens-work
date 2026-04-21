@@ -60,9 +60,12 @@ inline MultidayData MockState::currentMultiday() const {
         float wakeSwing = 4.0f * sinf(phase + 1.3f);
         d.bars[i].bedtime   = basedBed[i] - bedSwing;
         d.bars[i].wakeup    = basedWake[i] + wakeSwing;
-        d.bars[i].check     = ((frame_ + i) / 5) % 2;
-        d.bars[i].deltaUp   = ((frame_ + i) % 6) < 3;
-        d.bars[i].deltaDown = !d.bars[i].deltaUp;
+        // Markers track the current swing: later bedtime → '+', earlier → '-',
+        // near-reference (and past wake-target) → '✓'. Visible cycling for demo.
+        d.bars[i].deltaUp   = bedSwing < -1.0f;
+        d.bars[i].deltaDown = bedSwing >  1.0f;
+        d.bars[i].check     = !d.bars[i].deltaUp && !d.bars[i].deltaDown
+                              && sinf(phase + 0.5f) > 0.3f;
     }
     return d;
 }
