@@ -3,8 +3,7 @@
 
 #include <stdint.h>
 
-#include "../fonts/MinecraftBold6pt7b.h"
-#include "../fonts/RainyHearts6pt7b.h"
+#include "multiday_glyphs.h"
 
 // Per-bar state for the 7-night actogram.
 struct MultidayBar {
@@ -31,10 +30,10 @@ struct MultidayData {
 //   Midline:      y=82        (asymmetric: 51 px above, 21 px below)
 //   LINE overrun: x=14..161   (midline extends 3 px past chart each side)
 //   Bars:         width 15, stride 21 (15 bar + 6 gap) at x=17,38,59,80,101,122,143
-//   Title:        baseline y=23, centered at x=87
-//   Left labels:  "12" at y=39, "0" at y=78, "12" at y=100  (x≈5, left-aligned)
-//   Right labels: "6" at y=54, "3" at y=66, "18" at y=94   (x≈170, right-aligned)
-//   WEEK labels:  baseline y=110, centered under each bar
+//   Title NIGHTS: top-left x=71, y=17  (31×7 blob)
+//   Left labels:  "12" top-y 33 / "0" top-y 72 / "12" top-y 94  (left-aligned x≈5)
+//   Right labels: "6" top-y 48 / "3" top-y 60 / "18" top-y 88   (right edge x≈168)
+//   WEEK labels:  top y=105, each letter centered under its bar column
 //   Day dot:      5-px circle, y=115
 //
 // Hour → Y mapping is intentionally asymmetric to match the PNG: the upper
@@ -55,34 +54,50 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
     const int barW        = 15;
     const int barStride   = 21;
 
-    display.setTextColor(BLACK);
-
-    // Title — baseline y=23, centered on x=87. RainyHearts for letters.
-    display.setFont(&rainyhearts6pt7b);
-    {
-        int16_t bx, by; uint16_t bw, bh;
-        display.getTextBounds(data.title, 0, 0, &bx, &by, &bw, &bh);
-        display.setCursor(ox + 87 - (int)bw/2 - bx, oy + 23);
-        display.print(data.title);
-    }
-
-    // Axis labels — MinecraftBold 6pt has readable "1" (flagged top, no foot).
-    display.setFont(&MinecraftBold_nMK16pt7b);
-    auto labelAt = [&](int x, int yBase, const char* s, bool rightAlign) {
-        int16_t bx, by; uint16_t bw, bh;
-        display.getTextBounds(s, 0, 0, &bx, &by, &bw, &bh);
-        int cx = rightAlign ? (x - (int)bw - bx) : (x - bx);
-        display.setCursor(cx, yBase);
-        display.print(s);
+    // Blit a packed-rows glyph: MSB-first, leftmost column = bit 7.
+    // `rows` points at row 0; each row is `stride` bytes wide.
+    auto blitGlyph = [&](int xLeft, int yTop, int w, int h, int stride,
+                         const uint8_t* rows) {
+        for (int r = 0; r < h; ++r) {
+            const uint8_t* row = rows + r * stride;
+            for (int c = 0; c < w; ++c) {
+                if (row[c >> 3] & (0x80 >> (c & 7)))
+                    display.drawPixel(xLeft + c, yTop + r, BLACK);
+            }
+        }
     };
-    // Left column (left-aligned).
-    labelAt(ox +  5, oy + 39,  "12", false);
-    labelAt(ox +  7, oy + 78,  "0",  false);
-    labelAt(ox +  5, oy + 100, "12", false);
-    // Right column (right-aligned at x=170).
-    labelAt(ox + 170, oy + 54, "6",  true);
-    labelAt(ox + 170, oy + 66, "3",  true);
-    labelAt(ox + 170, oy + 94, "18", true);
+
+    // Title NIGHTS — 31×7 blob at face-rel (71, 17).
+    blitGlyph(ox + 71, oy + 17, GLYPH_NIGHTS_W, GLYPH_NIGHTS_H,
+              GLYPH_NIGHTS_STRIDE, &GLYPH_NIGHTS_ROWS[0][0]);
+
+    // Axis labels — left column (left-aligned).
+    // Upper "12" at y=33
+    blitGlyph(ox + 5, oy + 33, GLYPH_DIG_1_W, GLYPH_DIG_1_H,
+              GLYPH_DIG_1_STRIDE, GLYPH_DIG_1_ROWS);
+    blitGlyph(ox + 8, oy + 33, GLYPH_DIG_2_W, GLYPH_DIG_2_H,
+              GLYPH_DIG_2_STRIDE, GLYPH_DIG_2_ROWS);
+    // Middle "0" at y=72
+    blitGlyph(ox + 7, oy + 72, GLYPH_DIG_0_W, GLYPH_DIG_0_H,
+              GLYPH_DIG_0_STRIDE, GLYPH_DIG_0_ROWS);
+    // Lower "12" at y=94
+    blitGlyph(ox + 5, oy + 94, GLYPH_DIG_1_W, GLYPH_DIG_1_H,
+              GLYPH_DIG_1_STRIDE, GLYPH_DIG_1_ROWS);
+    blitGlyph(ox + 8, oy + 94, GLYPH_DIG_2_W, GLYPH_DIG_2_H,
+              GLYPH_DIG_2_STRIDE, GLYPH_DIG_2_ROWS);
+
+    // Right column (right-aligned at extracted PNG positions).
+    // "6" at y=48, right edge x=167
+    blitGlyph(ox + 164, oy + 48, GLYPH_DIG_6_W, GLYPH_DIG_6_H,
+              GLYPH_DIG_6_STRIDE, GLYPH_DIG_6_ROWS);
+    // "3" at y=60, right edge x=167
+    blitGlyph(ox + 164, oy + 60, GLYPH_DIG_3_W, GLYPH_DIG_3_H,
+              GLYPH_DIG_3_STRIDE, GLYPH_DIG_3_ROWS);
+    // "18" at y=88, right edge x=169
+    blitGlyph(ox + 163, oy + 88, GLYPH_DIG_1_W, GLYPH_DIG_1_H,
+              GLYPH_DIG_1_STRIDE, GLYPH_DIG_1_ROWS);
+    blitGlyph(ox + 166, oy + 88, GLYPH_DIG_8_W, GLYPH_DIG_8_H,
+              GLYPH_DIG_8_STRIDE, GLYPH_DIG_8_ROWS);
 
     auto hourToY = [&](float h) -> int {
         if (h <= 0.0f) {
@@ -142,15 +157,36 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
     // Midline (LINE layer overruns the chart by 3 px each side).
     display.drawFastHLine(lineLeft, chartMid, lineRight - lineLeft + 1, BLACK);
 
-    // Day letters centered under each column, baseline y=110. Back to rainyhearts.
-    display.setFont(&rainyhearts6pt7b);
+    // Day letters, top y=105. Per-slot x positions measured from the PNG:
+    // slots 4 and 6 are nudged right in the reference, so we use a lookup
+    // instead of centering algorithmically.
+    auto dayGlyph = [&](char c, int& w, int& h, int& stride,
+                        const uint8_t*& rows) -> bool {
+        switch (c) {
+            case 'M': w = GLYPH_DAY_M_W; h = GLYPH_DAY_M_H;
+                      stride = GLYPH_DAY_M_STRIDE; rows = GLYPH_DAY_M_ROWS;
+                      return true;
+            case 'T': w = GLYPH_DAY_T_W; h = GLYPH_DAY_T_H;
+                      stride = GLYPH_DAY_T_STRIDE; rows = GLYPH_DAY_T_ROWS;
+                      return true;
+            case 'W': w = GLYPH_DAY_W_W; h = GLYPH_DAY_W_H;
+                      stride = GLYPH_DAY_W_STRIDE; rows = GLYPH_DAY_W_ROWS;
+                      return true;
+            case 'F': w = GLYPH_DAY_F_W; h = GLYPH_DAY_F_H;
+                      stride = GLYPH_DAY_F_STRIDE; rows = GLYPH_DAY_F_ROWS;
+                      return true;
+            case 'S': w = GLYPH_DAY_S_W; h = GLYPH_DAY_S_H;
+                      stride = GLYPH_DAY_S_STRIDE; rows = GLYPH_DAY_S_ROWS;
+                      return true;
+        }
+        return false;
+    };
+    const int dayX[7] = { 22, 44, 64, 86, 108, 127, 150 };
     for (int i = 0; i < 7; ++i) {
-        int bx = chartLeft + i * barStride + barW / 2;
-        char s[2] = { data.dayLabels[i], 0 };
-        int16_t tx, ty; uint16_t tw, th;
-        display.getTextBounds(s, 0, 0, &tx, &ty, &tw, &th);
-        display.setCursor(bx - (int)tw/2 - tx, oy + 110);
-        display.print(s);
+        int gw, gh, gs; const uint8_t* gr;
+        if (dayGlyph(data.dayLabels[i], gw, gh, gs, gr)) {
+            blitGlyph(ox + dayX[i], oy + 105, gw, gh, gs, gr);
+        }
     }
 
     // Current-day dot.
