@@ -5,13 +5,14 @@
 
 #include "multiday_glyphs.h"
 
-// Per-bar state for the 7-night actogram.
+// Per-bar state for the 7-night actogram. Fill extents are face-relative
+// pixel positions so mockup and real-data paths share one renderer.
 struct MultidayBar {
-    float bedtime;    // 24h float, e.g. 22.75 = 10:45 PM
-    float wakeup;     // 24h float, e.g. 7.25 = 7:15 AM (next day, 0..12)
-    bool  deltaUp;    // '+' marker = bedtime later than reference
-    bool  deltaDown;  // '-' marker = bedtime earlier than reference
-    bool  check;      // '✓' marker = on-target
+    int  fillY0;      // top of solid fill (inclusive), face-relative
+    int  fillY1;      // bottom of solid fill (inclusive), face-relative
+    bool deltaUp;     // '+' marker
+    bool deltaDown;   // '-' marker
+    bool check;       // '✓' marker
 };
 
 struct MultidayData {
@@ -36,23 +37,23 @@ struct MultidayData {
 //   WEEK labels:  top y=105, each letter centered under its bar column
 //   Day dot:      5-px circle, y=115
 //
-// Hour → Y mapping is intentionally asymmetric to match the PNG: the upper
-// 51 px encodes noon→midnight (12 h), and the lower 21 px encodes midnight→
-// 5 am (5 h). Labels "12/0/12" are the designer's cosmetic hint, not a
-// strict scale — follow the PNG pixels, not the math.
+// Solid-fill extents are supplied as face-relative pixel positions (fillY0,
+// fillY1). Labels "12/0/12" on the left axis are the designer's cosmetic
+// hint; there is no strict hour→Y mapping in this path. Slot-to-slot
+// rotation for mock animation is handled at the data layer — the renderer
+// just draws whatever (fillY0, fillY1) each bar carries.
 template <typename Display>
 void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data) {
     const uint16_t BLACK = 0x0000;
     const uint16_t WHITE = 0xFFFF;
 
-    const int chartTop    = oy + 31;
-    const int chartBottom = oy + 103;
-    const int chartMid    = oy + 82;
-    const int chartLeft   = ox + 17;
-    const int lineLeft    = ox + 14;
-    const int lineRight   = ox + 161;
-    const int barW        = 15;
-    const int barStride   = 21;
+    const int chartTop  = oy + 31;
+    const int chartMid  = oy + 82;
+    const int chartLeft = ox + 17;
+    const int lineLeft  = ox + 14;
+    const int lineRight = ox + 161;
+    const int barW      = 15;
+    const int barStride = 21;
 
     // Blit a packed-rows glyph: MSB-first, leftmost column = bit 7.
     // `rows` points at row 0; each row is `stride` bytes wide.
@@ -99,60 +100,12 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
     blitGlyph(ox + 166, oy + 88, GLYPH_DIG_8_W, GLYPH_DIG_8_H,
               GLYPH_DIG_8_STRIDE, GLYPH_DIG_8_ROWS);
 
-    auto hourToY = [&](float h) -> int {
-        if (h <= 0.0f) {
-            float t = (h + 12.0f) / 12.0f;
-            if (t < 0) t = 0;
-            if (t > 1) t = 1;
-            return chartTop + (int)(t * (chartMid - chartTop));
-        } else {
-            float t = h / 5.0f;
-            if (t < 0) t = 0;
-            if (t > 1) t = 1;
-            return chartMid + (int)(t * (chartBottom - chartMid));
-        }
-    };
-
-    for (int i = 0; i < 7; ++i) {
-        int bx = chartLeft + i * barStride;
-        int bh = chartBottom - chartTop + 1;
-
-        // Full-column checkerboard dither.
-        for (int yy = 0; yy < bh; ++yy) {
-            for (int xx = 0; xx < barW; ++xx) {
-                if (((xx + yy) & 1) == 0)
-                    display.drawPixel(bx + xx, chartTop + yy, BLACK);
-            }
-        }
-
-        // Solid-black sleep interval.
-        float bed  = data.bars[i].bedtime;
-        float wake = data.bars[i].wakeup;
-        float bedOff  = (bed >= 12.0f) ? (bed - 24.0f) : bed;
-        float wakeOff = wake;
-        int y0 = hourToY(bedOff);
-        int y1 = hourToY(wakeOff);
-        if (y0 > y1) { int t = y0; y0 = y1; y1 = t; }
-        display.fillRect(bx, y0, barW, y1 - y0 + 1, BLACK);
-
-        // White markers inside solid fill.
-        int cx = bx + barW / 2;
-        int fillH = y1 - y0;
-        if (data.bars[i].check && fillH >= 8) {
-            int cy = y0 + 5;
-            display.drawLine(cx - 2, cy,     cx - 1, cy + 2, WHITE);
-            display.drawLine(cx - 1, cy + 2, cx + 2, cy - 1, WHITE);
-        }
-        if (data.bars[i].deltaUp && fillH >= 10) {
-            int cy = y0 + fillH / 4;
-            display.drawFastHLine(cx - 2, cy, 5, WHITE);
-            display.drawLine(cx, cy - 2, cx, cy + 2, WHITE);
-        }
-        if (data.bars[i].deltaDown && fillH >= 10) {
-            int cy = y1 - fillH / 4;
-            display.drawFastHLine(cx - 2, cy, 5, WHITE);
-        }
-    }
+    // Chart body: 7 bars + dither + markers + midline baked into a single
+    // 142×73 bitmap extracted pixel-exact from references/multyday.png.
+    // data.bars[] is ignored here — it will be consumed by a future
+    // real-data renderer that reconstructs dither + fill + markers.
+    blitGlyph(ox + 17, chartTop, GLYPH_MULTIDAY_CHART_W, GLYPH_MULTIDAY_CHART_H,
+              GLYPH_MULTIDAY_CHART_STRIDE, &GLYPH_MULTIDAY_CHART_ROWS[0][0]);
 
     // Midline (LINE layer overruns the chart by 3 px each side).
     display.drawFastHLine(lineLeft, chartMid, lineRight - lineLeft + 1, BLACK);

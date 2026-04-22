@@ -45,47 +45,52 @@ inline void MockState::scrollText(char* out, int len, uint32_t offset) {
 
 // ── Multiday mock ──────────────────────────────────────────────────
 
+// Reference bar pattern measured pixel-exact from references/multyday.png
+// (face-relative; chart spans y=31..103). Each entry is a full per-bar
+// snapshot — fill extent + marker flags — so the mock can rotate whole
+// patterns across slots without splitting geometry from glyphs.
+struct MultidayRefBar {
+    int  y0, y1;
+    bool deltaUp, deltaDown, check;
+};
+static const MultidayRefBar kRefBars[7] = {
+    { 47, 82,  false, false, true  }, // M
+    { 48, 82,  true,  false, true  }, // T
+    { 31, 82,  true,  false, true  }, // W
+    { 41, 103, true,  true,  false }, // T
+    { 40, 82,  false, true,  true  }, // F
+    { 35, 82,  false, true,  true  }, // S
+    { 37, 82,  false, false, false }, // S
+};
+
 inline MultidayData MockState::currentMultiday() const {
     MultidayData d{};
-    // Static title + day labels for demo; bars wobble and dot advances.
     d.title      = "NIGHTS";
     d.dayLabels  = "MTWTFSS";
-    d.currentDay = (frame_ / 20) % 7; // dot moves every ~20s in real time
-
-    const float basedBed[7]  = { 22.5f, 23.0f, 22.0f, 23.5f, 23.25f, 0.5f,  22.75f };
-    const float basedWake[7] = {  7.0f,  6.5f,  8.0f,  7.5f,  6.75f, 7.25f, 6.25f };
+    d.currentDay = 3;
     for (int i = 0; i < 7; ++i) {
-        float phase = (frame_ + i * 5) * 0.55f;
-        float bedSwing  = 4.0f * sinf(phase);
-        float wakeSwing = 4.0f * sinf(phase + 1.3f);
-        d.bars[i].bedtime   = basedBed[i] - bedSwing;
-        d.bars[i].wakeup    = basedWake[i] + wakeSwing;
-        // Markers track the current swing: later bedtime → '+', earlier → '-',
-        // near-reference (and past wake-target) → '✓'. Visible cycling for demo.
-        d.bars[i].deltaUp   = bedSwing < -1.0f;
-        d.bars[i].deltaDown = bedSwing >  1.0f;
-        d.bars[i].check     = !d.bars[i].deltaUp && !d.bars[i].deltaDown
-                              && sinf(phase + 0.5f) > 0.3f;
+        d.bars[i].fillY0    = kRefBars[i].y0;
+        d.bars[i].fillY1    = kRefBars[i].y1;
+        d.bars[i].deltaUp   = kRefBars[i].deltaUp;
+        d.bars[i].deltaDown = kRefBars[i].deltaDown;
+        d.bars[i].check     = kRefBars[i].check;
     }
     return d;
 }
 
-// Static snapshot matching the reference PNG exactly (no animation, no scroll).
+// Static snapshot matching the reference PNG exactly (no animation).
 inline MultidayData referenceMultiday() {
     MultidayData d{};
     d.title      = "NIGHTS";
     d.dayLabels  = "MTWTFSS";
     d.currentDay = 3;
-    const MultidayBar ref[7] = {
-        { 21.0f,  4.0f, false, true,  true  },
-        { 21.5f,  3.5f, true,  false, true  },
-        { 20.5f,  4.5f, true,  true,  true  },
-        { 23.0f,  3.5f, true,  true,  false },
-        { 22.0f,  3.0f, false, true,  true  },
-        { 22.5f,  4.0f, true,  true,  true  },
-        { 23.5f,  3.5f, true,  true,  false },
-    };
-    for (int i = 0; i < 7; ++i) d.bars[i] = ref[i];
+    for (int i = 0; i < 7; ++i) {
+        d.bars[i].fillY0    = kRefBars[i].y0;
+        d.bars[i].fillY1    = kRefBars[i].y1;
+        d.bars[i].deltaUp   = kRefBars[i].deltaUp;
+        d.bars[i].deltaDown = kRefBars[i].deltaDown;
+        d.bars[i].check     = kRefBars[i].check;
+    }
     return d;
 }
 
