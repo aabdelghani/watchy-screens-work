@@ -67,7 +67,7 @@ inline MultidayData MockState::currentMultiday() const {
     MultidayData d{};
     d.title      = "NIGHTS";
     d.dayLabels  = "MTWTFSS";
-    d.currentDay = 3;
+    d.currentDay = (int)(frame_ % 7);
     for (int i = 0; i < 7; ++i) {
         d.bars[i].fillY0    = kRefBars[i].y0;
         d.bars[i].fillY1    = kRefBars[i].y1;
@@ -75,6 +75,18 @@ inline MultidayData MockState::currentMultiday() const {
         d.bars[i].deltaDown = kRefBars[i].deltaDown;
         d.bars[i].check     = kRefBars[i].check;
     }
+
+    // Random per-frame permutation of the 7 source bars across slots:
+    // Fisher-Yates seeded from frame_, so the shuffle is deterministic
+    // (reproducible in --dump) but visually pseudo-random.
+    int perm[7] = { 0, 1, 2, 3, 4, 5, 6 };
+    uint32_t s = frame_ * 2654435761u + 1u;
+    for (int i = 6; i > 0; --i) {
+        s = s * 1664525u + 1013904223u;
+        int j = (int)((s >> 16) % (uint32_t)(i + 1));
+        int t = perm[i]; perm[i] = perm[j]; perm[j] = t;
+    }
+    for (int i = 0; i < 7; ++i) d.slotSource[i] = perm[i];
     return d;
 }
 
@@ -90,6 +102,7 @@ inline MultidayData referenceMultiday() {
         d.bars[i].deltaUp   = kRefBars[i].deltaUp;
         d.bars[i].deltaDown = kRefBars[i].deltaDown;
         d.bars[i].check     = kRefBars[i].check;
+        d.slotSource[i]     = i;  // identity mapping → reference PNG
     }
     return d;
 }

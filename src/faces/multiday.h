@@ -20,6 +20,10 @@ struct MultidayData {
     const char* dayLabels;    // 7 chars, e.g. "MTWTFSS"
     int         currentDay;   // 0..6, weekday that gets the dot marker
     MultidayBar bars[7];
+    // For the baked-bitmap mock path: which source bar (0..6) to blit at
+    // each slot position (0..6). Identity {0,1,2,3,4,5,6} reproduces the
+    // reference PNG exactly; permutations shuffle the bars across slots.
+    int         slotSource[7];
 };
 
 // Geometry calibrated against references/multyday.ase (176×136 face),
@@ -100,12 +104,22 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
     blitGlyph(ox + 166, oy + 88, GLYPH_DIG_8_W, GLYPH_DIG_8_H,
               GLYPH_DIG_8_STRIDE, GLYPH_DIG_8_ROWS);
 
-    // Chart body: 7 bars + dither + markers + midline baked into a single
-    // 142×73 bitmap extracted pixel-exact from references/multyday.png.
-    // data.bars[] is ignored here — it will be consumed by a future
-    // real-data renderer that reconstructs dither + fill + markers.
-    blitGlyph(ox + 17, chartTop, GLYPH_MULTIDAY_CHART_W, GLYPH_MULTIDAY_CHART_H,
-              GLYPH_MULTIDAY_CHART_STRIDE, &GLYPH_MULTIDAY_CHART_ROWS[0][0]);
+    // Left-side triangle marker from the reference, at face-rel (13,44).
+    blitGlyph(ox + 13, oy + 44, GLYPH_MARKER_R_W, GLYPH_MARKER_R_H,
+              GLYPH_MARKER_R_STRIDE, &GLYPH_MARKER_R_ROWS[0][0]);
+
+    // Chart body: 7 per-bar 15×73 bitmaps (dither + fill + markers + midline
+    // baked in), blitted at each slot position. slotSource selects which
+    // source bar goes in which slot — identity matches the reference PNG,
+    // permutations shuffle bars across slots. data.bars[] is ignored here;
+    // it will be consumed by a future real-data renderer.
+    for (int i = 0; i < 7; ++i) {
+        int src = data.slotSource[i];
+        if (src < 0 || src > 6) src = i;
+        blitGlyph(chartLeft + i * barStride, chartTop,
+                  GLYPH_MULTIDAY_BAR_W, GLYPH_MULTIDAY_BAR_H,
+                  GLYPH_MULTIDAY_BAR_STRIDE, GLYPH_MULTIDAY_BARS[src]);
+    }
 
     // Midline (LINE layer overruns the chart by 3 px each side).
     display.drawFastHLine(lineLeft, chartMid, lineRight - lineLeft + 1, BLACK);
