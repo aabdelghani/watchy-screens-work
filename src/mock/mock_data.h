@@ -76,6 +76,12 @@ inline MultidayData MockState::currentMultiday() const {
         d.bars[i].check     = kRefBars[i].check;
     }
 
+    // Midline oscillates as a 40-tick triangle wave around y=82 (±10 px),
+    // staying well within the chart bounds (y=31..103).
+    uint32_t p = frame_ % 40;
+    int off = (p < 20) ? (int)p : (int)(40 - p);  // 0..20..0
+    d.midlineY = 72 + off;
+
     // Random per-frame permutation of the 7 source bars across slots:
     // Fisher-Yates seeded from frame_, so the shuffle is deterministic
     // (reproducible in --dump) but visually pseudo-random.
@@ -96,6 +102,7 @@ inline MultidayData referenceMultiday() {
     d.title      = "NIGHTS";
     d.dayLabels  = "MTWTFSS";
     d.currentDay = 3;
+    d.midlineY   = 82;
     for (int i = 0; i < 7; ++i) {
         d.bars[i].fillY0    = kRefBars[i].y0;
         d.bars[i].fillY1    = kRefBars[i].y1;

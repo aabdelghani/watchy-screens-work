@@ -4,10 +4,10 @@
 #include <stdint.h>
 
 // 200×200 Watchy screen chrome. Outside the face octagon is filled with a
-// 50% checkerboard dither; inside is white with a single-pixel black
-// outline. The face is a 176×136 octagon whose corner chamfers match
-// references/176x136.png exactly: a 2-pixel gutter all around, then
-// 34-row corner chamfers with a ~3:4 slope (x steps 3 per 4 rows of y).
+// 50% checkerboard dither; inside is plain white. The face is a 176×136
+// octagon whose corner chamfers match references/176x136.png exactly:
+// a 2-pixel gutter all around, then 34-row corner chamfers with a ~3:4
+// slope (x steps 3 per 4 rows of y).
 template <typename Display>
 void drawWatchyChrome(Display& display) {
     const uint16_t BLACK = 0x0000;
@@ -57,21 +57,6 @@ void drawWatchyChrome(Display& display) {
         int x1 = OX + BOX_W - 1 - ins;
         for (int x = x0; x <= x1; ++x) display.drawPixel(x, OY + dy, WHITE);
     }
-
-    // 3. Black outline at the boundary — one pixel per row on each side,
-    //    plus solid top/bottom horizontal edges.
-    for (int dy = 0; dy < BOX_H; ++dy) {
-        int ins = insetAtY(dy);
-        if (ins < 0) continue;
-        display.drawPixel(OX + ins,             OY + dy, BLACK);
-        display.drawPixel(OX + BOX_W - 1 - ins, OY + dy, BLACK);
-    }
-    int topIns = insetAtY(MARGIN);
-    int botIns = insetAtY(BOX_H - 1 - MARGIN);
-    for (int x = OX + topIns; x <= OX + BOX_W - 1 - topIns; ++x)
-        display.drawPixel(x, OY + MARGIN, BLACK);
-    for (int x = OX + botIns; x <= OX + BOX_W - 1 - botIns; ++x)
-        display.drawPixel(x, OY + BOX_H - 1 - MARGIN, BLACK);
 }
 
 #endif // WATCHY_SCREENS_FRAME_H

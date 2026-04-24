@@ -24,6 +24,8 @@ struct MultidayData {
     // each slot position (0..6). Identity {0,1,2,3,4,5,6} reproduces the
     // reference PNG exactly; permutations shuffle the bars across slots.
     int         slotSource[7];
+    // Face-relative y of the horizontal midline (reference PNG: 82).
+    int         midlineY;
 };
 
 // Geometry calibrated against references/multyday.ase (176×136 face),
@@ -52,7 +54,7 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
     const uint16_t WHITE = 0xFFFF;
 
     const int chartTop  = oy + 31;
-    const int chartMid  = oy + 82;
+    const int chartMid  = oy + data.midlineY;
     const int chartLeft = ox + 17;
     const int lineLeft  = ox + 14;
     const int lineRight = ox + 161;
