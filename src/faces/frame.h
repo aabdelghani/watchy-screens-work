@@ -5,9 +5,34 @@
 
 // 200×200 Watchy screen chrome. Outside the face octagon is filled with a
 // 50% checkerboard dither; inside is plain white. The face is a 176×136
-// octagon whose corner chamfers match references/176x136.png exactly:
-// a 2-pixel gutter all around, then 34-row corner chamfers with a ~3:4
-// slope (x steps 3 per 4 rows of y).
+// octagon whose boundary was extracted pixel-exact from the alpha channel
+// of references/multyday.png (the authoritative content reference). The
+// per-row insets are slightly asymmetric where the reference's
+// anti-aliasing snapped one way or the other; we keep the asymmetry so the
+// rendered edge matches the reference exactly under an alpha>128 mask.
+static const int8_t kFaceLeftInset[136] = {
+     24, 23, 23, 22, 21, 21, 20, 19, 19, 18, 17, 17, 16, 15, 15, 14,
+     14, 13, 12, 12, 11, 10, 10,  9,  8,  8,  7,  6,  6,  5,  4,  4,
+      3,  2,  2,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  1,  1,  2,  2,  3,  4,  5,  5,  6,  6,  7,  8,
+      9, 10, 10, 11, 12, 12, 13, 13, 14, 14, 15, 16, 16, 17, 18, 18,
+     19, 20, 21, 21, 22, 23, 23, 24,
+};
+static const int8_t kFaceRightInset[136] = {
+     24, 24, 23, 22, 22, 21, 20, 20, 19, 18, 18, 17, 16, 16, 15, 14,
+     14, 13, 12, 12, 11, 10, 10,  9,  8,  8,  7,  7,  6,  5,  5,  4,
+      3,  3,  2,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  1,  1,  2,  3,  3,  4,  5,  5,  6,  7,  7,
+      8,  9,  9, 10, 11, 11, 12, 12, 13, 14, 14, 15, 16, 16, 17, 18,
+     19, 20, 21, 21, 22, 23, 23, 24,
+};
+
 template <typename Display>
 void drawWatchyChrome(Display& display) {
     const uint16_t BLACK = 0x0000;
@@ -18,29 +43,6 @@ void drawWatchyChrome(Display& display) {
     const int BOX_H     = 136;
     const int OX        = (SCREEN_W - BOX_W) / 2;  // 12
     const int OY        = 32;
-    const int MARGIN    = 2;   // gutter between box edge and face edge
-    const int CHAMFER_H = 34;  // rows of vertical extent at each corner
-    const int CHAMFER_W = 26;  // horizontal Δx across the chamfer
-
-    // For each face-relative row dy (0..BOX_H-1), return the horizontal
-    // inset from the box edge to the face boundary, or -1 if the row is
-    // fully outside the face (the 2-px top/bottom gutters).
-    auto insetAtY = [&](int dy) -> int {
-        if (dy < MARGIN || dy >= BOX_H - MARGIN) return -1;
-        int k;
-        if (dy - MARGIN < CHAMFER_H) {
-            // Top chamfer: k = 0 at dy=MARGIN, k = CHAMFER_H-1 at end.
-            k = dy - MARGIN;
-        } else if (dy >= BOX_H - MARGIN - CHAMFER_H) {
-            // Bottom chamfer: k = 0 at dy=BOX_H-1-MARGIN, k = CHAMFER_H-1 at top.
-            k = (BOX_H - 1 - MARGIN) - dy;
-        } else {
-            return MARGIN; // straight middle section
-        }
-        // Step pattern matching 176x136.png: 3 px horizontal per 4 px vertical,
-        // so inset shrinks by (3k+3)/4 from (MARGIN + CHAMFER_W) at k=0.
-        return (MARGIN + CHAMFER_W) - (3 * k + 3) / 4;
-    };
 
     // 1. Fill whole screen with 50% dither (black pixels on white bg).
     for (int y = 0; y < SCREEN_H; ++y) {
@@ -49,12 +51,11 @@ void drawWatchyChrome(Display& display) {
         }
     }
 
-    // 2. Carve out white face interior.
+    // 2. Carve out white face interior using the per-row insets extracted
+    //    from references/multyday.png.
     for (int dy = 0; dy < BOX_H; ++dy) {
-        int ins = insetAtY(dy);
-        if (ins < 0) continue;
-        int x0 = OX + ins;
-        int x1 = OX + BOX_W - 1 - ins;
+        int x0 = OX + kFaceLeftInset[dy];
+        int x1 = OX + BOX_W - 1 - kFaceRightInset[dy];
         for (int x = x0; x <= x1; ++x) display.drawPixel(x, OY + dy, WHITE);
     }
 }
