@@ -6,6 +6,21 @@
 // Auto-generated from references/stats.png by /tmp/gen_stats_glyphs.py.
 // Every glyph is packed MSB-first; each row is `stride` bytes wide.
 
+// DIG_0 is hand-authored in the same small-digit style (reference PNG
+// has no 0 in the small-digit slots; the 7-scene animation needs one).
+static const int GLYPH_STATS_DIG_0_W = 4;
+static const int GLYPH_STATS_DIG_0_H = 7;
+static const int GLYPH_STATS_DIG_0_STRIDE = 1;
+static const uint8_t GLYPH_STATS_DIG_0_ROWS[7][1] = {
+    { 0x60 },
+    { 0x90 },
+    { 0x90 },
+    { 0x90 },
+    { 0x90 },
+    { 0x90 },
+    { 0x60 },
+};
+
 // LBL_C at face-rel (35, 42), 6x7
 static const int GLYPH_STATS_LBL_C_W = 6;
 static const int GLYPH_STATS_LBL_C_H = 7;
@@ -596,5 +611,99 @@ static const uint8_t GLYPH_STATS_SM_N_ROWS[7][1] = {
 
 // Each entry: (x, y, W_const, H_const, STRIDE_const, ROWS).
 // Renderer blits each entry in order. Positions are face-relative.
+
+// ────────────────────────────────────────────────────────────────────
+// Hand-authored extensions for the 7-scene animation. The reference PNG
+// only contains S/U/N (for SUN) and 4/5 in the small-date slots, so
+// everything needed for MON/TUE/WED/THU/FRI/SAT + digit-rotation dates
+// is designed here in the same 5×7 single-stroke SM style.
+// ────────────────────────────────────────────────────────────────────
+
+// Letters: M, O, T, E, W, D, H, F, R, I, A  (all 5×7)
+static const int GLYPH_STATS_SM_M_W = 5; static const int GLYPH_STATS_SM_M_H = 7; static const int GLYPH_STATS_SM_M_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_M_ROWS[7][1] = {
+    { 0x88 }, { 0xd8 }, { 0xa8 }, { 0xa8 }, { 0x88 }, { 0x88 }, { 0x88 },
+};
+
+static const int GLYPH_STATS_SM_O_W = 5; static const int GLYPH_STATS_SM_O_H = 7; static const int GLYPH_STATS_SM_O_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_O_ROWS[7][1] = {
+    { 0x70 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0x70 },
+};
+
+static const int GLYPH_STATS_SM_T_W = 5; static const int GLYPH_STATS_SM_T_H = 7; static const int GLYPH_STATS_SM_T_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_T_ROWS[7][1] = {
+    { 0xf8 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 },
+};
+
+static const int GLYPH_STATS_SM_E_W = 5; static const int GLYPH_STATS_SM_E_H = 7; static const int GLYPH_STATS_SM_E_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_E_ROWS[7][1] = {
+    { 0xf8 }, { 0x80 }, { 0x80 }, { 0xf0 }, { 0x80 }, { 0x80 }, { 0xf8 },
+};
+
+static const int GLYPH_STATS_SM_W_W = 5; static const int GLYPH_STATS_SM_W_H = 7; static const int GLYPH_STATS_SM_W_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_W_ROWS[7][1] = {
+    { 0x88 }, { 0x88 }, { 0x88 }, { 0xa8 }, { 0xa8 }, { 0xd8 }, { 0x88 },
+};
+
+static const int GLYPH_STATS_SM_D_W = 5; static const int GLYPH_STATS_SM_D_H = 7; static const int GLYPH_STATS_SM_D_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_D_ROWS[7][1] = {
+    { 0xf0 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0xf0 },
+};
+
+static const int GLYPH_STATS_SM_H_W = 5; static const int GLYPH_STATS_SM_H_H = 7; static const int GLYPH_STATS_SM_H_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_H_ROWS[7][1] = {
+    { 0x88 }, { 0x88 }, { 0x88 }, { 0xf8 }, { 0x88 }, { 0x88 }, { 0x88 },
+};
+
+static const int GLYPH_STATS_SM_F_W = 5; static const int GLYPH_STATS_SM_F_H = 7; static const int GLYPH_STATS_SM_F_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_F_ROWS[7][1] = {
+    { 0xf8 }, { 0x80 }, { 0x80 }, { 0xf0 }, { 0x80 }, { 0x80 }, { 0x80 },
+};
+
+static const int GLYPH_STATS_SM_R_W = 5; static const int GLYPH_STATS_SM_R_H = 7; static const int GLYPH_STATS_SM_R_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_R_ROWS[7][1] = {
+    { 0xf0 }, { 0x88 }, { 0x88 }, { 0xf0 }, { 0xa0 }, { 0x90 }, { 0x88 },
+};
+
+static const int GLYPH_STATS_SM_I_W = 5; static const int GLYPH_STATS_SM_I_H = 7; static const int GLYPH_STATS_SM_I_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_I_ROWS[7][1] = {
+    { 0x70 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x70 },
+};
+
+static const int GLYPH_STATS_SM_A_W = 5; static const int GLYPH_STATS_SM_A_H = 7; static const int GLYPH_STATS_SM_A_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_A_ROWS[7][1] = {
+    { 0x70 }, { 0x88 }, { 0x88 }, { 0xf8 }, { 0x88 }, { 0x88 }, { 0x88 },
+};
+
+// Small digits: 0, 1, 2, 6, 7, 8  (match SM_4/SM_5 style; 5×7, stride 1 — except SM_1 which is narrower)
+static const int GLYPH_STATS_SM_0_W = 5; static const int GLYPH_STATS_SM_0_H = 7; static const int GLYPH_STATS_SM_0_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_0_ROWS[7][1] = {
+    { 0x70 }, { 0x98 }, { 0xa8 }, { 0xa8 }, { 0xc8 }, { 0x88 }, { 0x70 },
+};
+
+static const int GLYPH_STATS_SM_1_W = 5; static const int GLYPH_STATS_SM_1_H = 7; static const int GLYPH_STATS_SM_1_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_1_ROWS[7][1] = {
+    { 0x20 }, { 0x60 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x70 },
+};
+
+static const int GLYPH_STATS_SM_2_W = 5; static const int GLYPH_STATS_SM_2_H = 7; static const int GLYPH_STATS_SM_2_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_2_ROWS[7][1] = {
+    { 0x70 }, { 0x88 }, { 0x08 }, { 0x10 }, { 0x20 }, { 0x40 }, { 0xf8 },
+};
+
+static const int GLYPH_STATS_SM_6_W = 5; static const int GLYPH_STATS_SM_6_H = 7; static const int GLYPH_STATS_SM_6_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_6_ROWS[7][1] = {
+    { 0x30 }, { 0x40 }, { 0x80 }, { 0xf0 }, { 0x88 }, { 0x88 }, { 0x70 },
+};
+
+static const int GLYPH_STATS_SM_7_W = 5; static const int GLYPH_STATS_SM_7_H = 7; static const int GLYPH_STATS_SM_7_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_7_ROWS[7][1] = {
+    { 0xf8 }, { 0x08 }, { 0x10 }, { 0x10 }, { 0x20 }, { 0x20 }, { 0x40 },
+};
+
+static const int GLYPH_STATS_SM_8_W = 5; static const int GLYPH_STATS_SM_8_H = 7; static const int GLYPH_STATS_SM_8_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_8_ROWS[7][1] = {
+    { 0x70 }, { 0x88 }, { 0x88 }, { 0x70 }, { 0x88 }, { 0x88 }, { 0x70 },
+};
 
 #endif // WATCHY_SCREENS_STATS_GLYPHS_H

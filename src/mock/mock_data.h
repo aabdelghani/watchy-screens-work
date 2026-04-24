@@ -147,6 +147,10 @@ inline StatsData MockState::currentStats() const {
     d.month  = 5;
     d.dow    = "SUN";
 
+    // Rotate the 4 right-column values across 7 hardcoded snapshots,
+    // switching every 3 ticks (~3 seconds in the sim).
+    d.sceneIndex = (int)((frame_ / 3) % 7);
+
     return d;
 }
 
@@ -164,6 +168,7 @@ inline StatsData referenceStats() {
     d.hour = 10; d.minute = 13;
     d.day  = 4;  d.month  = 5;
     d.dow  = "SUN";
+    d.sceneIndex = 0;  // pins --dump Stats to the reference scene
     return d;
 }
 
