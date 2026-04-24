@@ -117,58 +117,62 @@ inline MultidayData referenceMultiday() {
 // ── Stats mock ─────────────────────────────────────────────────────
 
 inline StatsData MockState::currentStats() const {
+    // 7 data-driven snapshots rotating every ~3 ticks. Labels stay
+    // constant; values, time, date, and day-of-week cycle.
+    struct Snapshot {
+        const char* vCoins;
+        const char* vSleep;
+        const char* vChrono;
+        const char* vResi;
+        int h, m, d, mo;
+        const char* dow;
+    };
+    static const Snapshot kScenes[7] = {
+        { "218",  "2.45", "2.15", "76",  10, 13, 4, 5, "SUN" },  // reference
+        { "412",  "1.10", "2.20", "81",  11, 30, 5, 5, "MON" },
+        { "507",  "0.45", "2.05", "88",   1, 30, 6, 5, "TUE" },
+        { "600",  "0.10", "2.00", "55",   3, 13, 7, 5, "WED" },
+        { "725",  "1.50", "2.10", "60",  13, 13, 8, 5, "THU" },
+        { "847",  "2.10", "2.12", "70",  10,  1, 1, 6, "FRI" },
+        { "164",  "1.45", "2.08", "85",   0, 30, 2, 6, "SAT" },
+    };
+
+    int idx = (int)((frame_ / 3) % 7);
+    const Snapshot& s = kScenes[idx];
+
     StatsData d{};
-
-    // Scrolling lengths match the reference strings:
-    // COINS=5, SLEEP DEBT=10, CHRONOTYPE=10, RESILIENCE=10
-    // 218 c=5, 2.45 h=6, 2.15 h=6, 76%=3
-    const int labelLen[4] = { 5, 10, 10, 10 };
-    const int valueLen[4] = { 5, 6, 6, 3 };
-
-    for (int i = 0; i < 4; ++i) {
-        scrollText(statLabel_[i], labelLen[i], frame_ + i * 7);
-        scrollText(statValue_[i], valueLen[i], frame_ + i * 7 + 50);
-    }
-
-    d.labelCoins      = statLabel_[0];
-    d.valueCoins      = statValue_[0];
-    d.labelSleepDebt  = statLabel_[1];
-    d.valueSleepDebt  = statValue_[1];
-    d.labelChronotype = statLabel_[2];
-    d.valueChronotype = statValue_[2];
-    d.labelResilience = statLabel_[3];
-    d.valueResilience = statValue_[3];
-
-    // Accelerated clock (x20)
-    uint32_t totalSec = frame_ * 20;
-    d.hour   = (totalSec / 3600) % 24;
-    d.minute = (totalSec / 60) % 60;
-    d.day    = 4 + (totalSec / 86400) % 28;
-    d.month  = 5;
-    d.dow    = "SUN";
-
-    // Rotate the 4 right-column values across 7 hardcoded snapshots,
-    // switching every 3 ticks (~3 seconds in the sim).
-    d.sceneIndex = (int)((frame_ / 3) % 7);
-
+    d.labelCoins      = "COINS";
+    d.labelSleepDebt  = "SLEEP DEBT";
+    d.labelChronotype = "CRONOTYPE";
+    d.labelResilience = "RESILIENCE";
+    d.valueCoins      = s.vCoins;
+    d.valueSleepDebt  = s.vSleep;
+    d.valueChronotype = s.vChrono;
+    d.valueResilience = s.vResi;
+    d.hour = s.h; d.minute = s.m;
+    d.day  = s.d; d.month  = s.mo;
+    d.dow  = s.dow;
+    d.sceneIndex = idx;
     return d;
 }
 
-// Static snapshot matching the reference PNG exactly.
+// Reference snapshot. Number values now render through RainyHearts,
+// so this no longer produces a byte-exact match against stats.png —
+// it's the scene-0 data snapshot.
 inline StatsData referenceStats() {
     StatsData d{};
     d.labelCoins      = "COINS";
-    d.valueCoins      = "218 c";
+    d.valueCoins      = "218";
     d.labelSleepDebt  = "SLEEP DEBT";
-    d.valueSleepDebt  = "2.45 h";
-    d.labelChronotype = "CHRONOTYPE";
-    d.valueChronotype = "2.15 h";
+    d.valueSleepDebt  = "2.45";
+    d.labelChronotype = "CRONOTYPE";
+    d.valueChronotype = "2.15";
     d.labelResilience = "RESILIENCE";
-    d.valueResilience = "76%";
+    d.valueResilience = "76";
     d.hour = 10; d.minute = 13;
     d.day  = 4;  d.month  = 5;
     d.dow  = "SUN";
-    d.sceneIndex = 0;  // pins --dump Stats to the reference scene
+    d.sceneIndex = 0;
     return d;
 }
 
