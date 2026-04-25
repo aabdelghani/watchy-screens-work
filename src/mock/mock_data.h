@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "../faces/multiday.h"
 #include "../faces/stats.h"
+#include "../faces/goodmorning.h"
 
 // Mock state evolves over ticks (1 tick = ~1 real second).
 // Animation spec from brief:
@@ -16,6 +17,7 @@ public:
     void tick();                          // advance by 1
     MultidayData currentMultiday() const; // snapshot for rendering
     StatsData currentStats() const;       // snapshot for rendering
+    GoodMorningData currentGoodMorning() const;
 
 private:
     uint32_t frame_ = 0;
@@ -152,6 +154,13 @@ inline StatsData MockState::currentStats() const {
     d.sceneIndex = (int)((frame_ / 3) % 7);
 
     return d;
+}
+
+// ── Goodmorning mock ───────────────────────────────────────────────
+
+inline GoodMorningData MockState::currentGoodMorning() const {
+    // 5 snapshots, switching every ~3 ticks.
+    return goodMorningScene((int)((frame_ / 3) % 5));
 }
 
 // Static snapshot matching the reference PNG exactly.

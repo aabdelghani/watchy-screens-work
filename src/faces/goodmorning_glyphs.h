@@ -420,7 +420,10 @@ static const uint8_t GLYPH_GM_LBL_T_R3_ROWS[7][1] = {
     { 0x30 },
 };
 
-// VAL_3 at face-rel (133, 65), 6x7
+// VAL_3 at face-rel (133, 65), 6x7. Row 6 byte was 0x98 (#..##.) — the
+// leading '#' is a 1-px artifact from the reference at (133, 71) which
+// the user noticed renders as ".3". Cleaned to 0x18 so the digit's
+// bottom row matches the top row's `...##.`.
 static const int GLYPH_GM_VAL_3_W = 6;
 static const int GLYPH_GM_VAL_3_H = 7;
 static const int GLYPH_GM_VAL_3_STRIDE = 1;
@@ -431,7 +434,7 @@ static const uint8_t GLYPH_GM_VAL_3_ROWS[7][1] = {
     { 0x08 },
     { 0x04 },
     { 0x24 },
-    { 0x98 },
+    { 0x18 },
 };
 
 // VAL_0 at face-rel (140, 65), 4x7
