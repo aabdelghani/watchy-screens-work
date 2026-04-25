@@ -642,4 +642,29 @@ static const uint8_t GLYPH_MARKER_R_ROWS[5][1] = {
     { 0x80 }, // #..
 };
 
+// ────────────────────────────────────────────────────────────────────
+// Hand-authored axis digits to fill out 0-9.
+// Style matches the existing rounded-corner DIG_0/3/6/8 set.
+// ────────────────────────────────────────────────────────────────────
+
+#define GLYPH_DIG_4_W 4
+#define GLYPH_DIG_4_H 7
+#define GLYPH_DIG_4_STRIDE 1
+static const uint8_t GLYPH_DIG_4_ROWS[7] = { 0x90, 0x90, 0x90, 0xF0, 0x10, 0x10, 0x10 };
+
+#define GLYPH_DIG_5_W 4
+#define GLYPH_DIG_5_H 7
+#define GLYPH_DIG_5_STRIDE 1
+static const uint8_t GLYPH_DIG_5_ROWS[7] = { 0xF0, 0x80, 0xE0, 0x10, 0x10, 0x90, 0x60 };
+
+#define GLYPH_DIG_7_W 4
+#define GLYPH_DIG_7_H 7
+#define GLYPH_DIG_7_STRIDE 1
+static const uint8_t GLYPH_DIG_7_ROWS[7] = { 0xF0, 0x10, 0x20, 0x20, 0x40, 0x40, 0x40 };
+
+#define GLYPH_DIG_9_W 4
+#define GLYPH_DIG_9_H 7
+#define GLYPH_DIG_9_STRIDE 1
+static const uint8_t GLYPH_DIG_9_ROWS[7] = { 0x60, 0x90, 0x90, 0x70, 0x10, 0x90, 0x60 };
+
 #endif // WATCHY_SCREENS_MULTIDAY_GLYPHS_H
