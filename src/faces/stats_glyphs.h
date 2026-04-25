@@ -706,4 +706,117 @@ static const uint8_t GLYPH_STATS_SM_8_ROWS[7][1] = {
     { 0x70 }, { 0x88 }, { 0x88 }, { 0x70 }, { 0x88 }, { 0x88 }, { 0x70 },
 };
 
+// ────────────────────────────────────────────────────────────────────
+// Filling out 0-9 in each size class so animations can use any digit.
+// All hand-authored to match the per-class style of the existing set.
+// ────────────────────────────────────────────────────────────────────
+
+// Value-column digits (4×7, rounded-corner style matching DIG_2/8).
+static const int GLYPH_STATS_DIG_3_W = 4;
+static const int GLYPH_STATS_DIG_3_H = 7;
+static const int GLYPH_STATS_DIG_3_STRIDE = 1;
+static const uint8_t GLYPH_STATS_DIG_3_ROWS[7][1] = {
+    { 0x60 }, { 0x90 }, { 0x10 }, { 0x60 }, { 0x10 }, { 0x90 }, { 0x60 },
+};
+
+static const int GLYPH_STATS_DIG_9_W = 4;
+static const int GLYPH_STATS_DIG_9_H = 7;
+static const int GLYPH_STATS_DIG_9_STRIDE = 1;
+static const uint8_t GLYPH_STATS_DIG_9_ROWS[7][1] = {
+    { 0x60 }, { 0x90 }, { 0x90 }, { 0x70 }, { 0x10 }, { 0x90 }, { 0x60 },
+};
+
+// Date small digits (5×7, chunky style matching SM_4/5).
+static const int GLYPH_STATS_SM_3_W = 5;
+static const int GLYPH_STATS_SM_3_H = 7;
+static const int GLYPH_STATS_SM_3_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_3_ROWS[7][1] = {
+    { 0xf0 }, { 0x08 }, { 0x08 }, { 0x70 }, { 0x08 }, { 0x08 }, { 0xf0 },
+};
+
+static const int GLYPH_STATS_SM_9_W = 5;
+static const int GLYPH_STATS_SM_9_H = 7;
+static const int GLYPH_STATS_SM_9_STRIDE = 1;
+static const uint8_t GLYPH_STATS_SM_9_ROWS[7][1] = {
+    { 0x70 }, { 0x88 }, { 0x88 }, { 0x78 }, { 0x08 }, { 0x88 }, { 0x70 },
+};
+
+// Big-time digits (10×15, 3-px stroke + rounded corners matching BIG_0/3).
+static const int GLYPH_STATS_BIG_2_W = 10;
+static const int GLYPH_STATS_BIG_2_H = 15;
+static const int GLYPH_STATS_BIG_2_STRIDE = 2;
+static const uint8_t GLYPH_STATS_BIG_2_ROWS[15][2] = {
+    { 0x7f, 0x80 }, { 0xff, 0xc0 }, { 0xff, 0xc0 },
+    { 0xc1, 0xc0 }, { 0x01, 0xc0 }, { 0x01, 0xc0 },
+    { 0x0f, 0xc0 }, { 0x1f, 0x80 }, { 0x3f, 0x00 },
+    { 0x7e, 0x00 }, { 0xfc, 0x00 }, { 0xc0, 0x00 },
+    { 0xff, 0xc0 }, { 0xff, 0xc0 }, { 0x7f, 0x80 },
+};
+
+static const int GLYPH_STATS_BIG_4_W = 10;
+static const int GLYPH_STATS_BIG_4_H = 15;
+static const int GLYPH_STATS_BIG_4_STRIDE = 2;
+static const uint8_t GLYPH_STATS_BIG_4_ROWS[15][2] = {
+    { 0x01, 0xc0 }, { 0x03, 0xc0 }, { 0x07, 0xc0 },
+    { 0x0f, 0xc0 }, { 0x1e, 0xc0 }, { 0x3c, 0xc0 },
+    { 0x78, 0xc0 }, { 0xf0, 0xc0 }, { 0xff, 0xc0 },
+    { 0xff, 0xc0 }, { 0x01, 0xc0 }, { 0x01, 0xc0 },
+    { 0x01, 0xc0 }, { 0x01, 0xc0 }, { 0x01, 0xc0 },
+};
+
+static const int GLYPH_STATS_BIG_5_W = 10;
+static const int GLYPH_STATS_BIG_5_H = 15;
+static const int GLYPH_STATS_BIG_5_STRIDE = 2;
+static const uint8_t GLYPH_STATS_BIG_5_ROWS[15][2] = {
+    { 0xff, 0xc0 }, { 0xff, 0xc0 }, { 0xc0, 0x00 },
+    { 0xc0, 0x00 }, { 0xc0, 0x00 }, { 0xfc, 0x00 },
+    { 0xff, 0xc0 }, { 0x01, 0xc0 }, { 0x01, 0xc0 },
+    { 0x01, 0xc0 }, { 0x01, 0xc0 }, { 0xc1, 0xc0 },
+    { 0xff, 0xc0 }, { 0xff, 0xc0 }, { 0x7f, 0x80 },
+};
+
+static const int GLYPH_STATS_BIG_6_W = 10;
+static const int GLYPH_STATS_BIG_6_H = 15;
+static const int GLYPH_STATS_BIG_6_STRIDE = 2;
+static const uint8_t GLYPH_STATS_BIG_6_ROWS[15][2] = {
+    { 0x0f, 0x80 }, { 0x1f, 0x80 }, { 0x3c, 0x00 },
+    { 0x78, 0x00 }, { 0xf0, 0x00 }, { 0xf0, 0x00 },
+    { 0xfc, 0x00 }, { 0xff, 0xc0 }, { 0xf1, 0xc0 },
+    { 0xe1, 0xc0 }, { 0xe1, 0xc0 }, { 0xf3, 0xc0 },
+    { 0xff, 0xc0 }, { 0xff, 0xc0 }, { 0x7f, 0x80 },
+};
+
+static const int GLYPH_STATS_BIG_7_W = 10;
+static const int GLYPH_STATS_BIG_7_H = 15;
+static const int GLYPH_STATS_BIG_7_STRIDE = 2;
+static const uint8_t GLYPH_STATS_BIG_7_ROWS[15][2] = {
+    { 0xff, 0xc0 }, { 0xff, 0xc0 }, { 0xff, 0xc0 },
+    { 0x01, 0xc0 }, { 0x03, 0x80 }, { 0x07, 0x00 },
+    { 0x0e, 0x00 }, { 0x1c, 0x00 }, { 0x38, 0x00 },
+    { 0x38, 0x00 }, { 0x70, 0x00 }, { 0x70, 0x00 },
+    { 0xe0, 0x00 }, { 0xe0, 0x00 }, { 0xe0, 0x00 },
+};
+
+static const int GLYPH_STATS_BIG_8_W = 10;
+static const int GLYPH_STATS_BIG_8_H = 15;
+static const int GLYPH_STATS_BIG_8_STRIDE = 2;
+static const uint8_t GLYPH_STATS_BIG_8_ROWS[15][2] = {
+    { 0x7f, 0x80 }, { 0xff, 0xc0 }, { 0xf3, 0xc0 },
+    { 0xe1, 0xc0 }, { 0xe1, 0xc0 }, { 0xf3, 0xc0 },
+    { 0xff, 0xc0 }, { 0x7f, 0x80 }, { 0xff, 0xc0 },
+    { 0xf3, 0xc0 }, { 0xe1, 0xc0 }, { 0xe1, 0xc0 },
+    { 0xf3, 0xc0 }, { 0xff, 0xc0 }, { 0x7f, 0x80 },
+};
+
+static const int GLYPH_STATS_BIG_9_W = 10;
+static const int GLYPH_STATS_BIG_9_H = 15;
+static const int GLYPH_STATS_BIG_9_STRIDE = 2;
+static const uint8_t GLYPH_STATS_BIG_9_ROWS[15][2] = {
+    { 0x7f, 0x80 }, { 0xff, 0xc0 }, { 0xf3, 0xc0 },
+    { 0xe1, 0xc0 }, { 0xe1, 0xc0 }, { 0xf3, 0xc0 },
+    { 0xff, 0xc0 }, { 0x7f, 0x80 }, { 0x01, 0xc0 },
+    { 0x01, 0xc0 }, { 0x01, 0xc0 }, { 0x01, 0xc0 },
+    { 0x01, 0xc0 }, { 0xff, 0xc0 }, { 0x7f, 0x80 },
+};
+
 #endif // WATCHY_SCREENS_STATS_GLYPHS_H
