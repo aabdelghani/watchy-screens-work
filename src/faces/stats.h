@@ -4,6 +4,9 @@
 #include <stdint.h>
 
 #include "stats_glyphs.h"
+#include "../fonts/WatchyDigits4x7.h"
+#include "../fonts/WatchyDigits5x7.h"
+#include "../fonts/WatchyDigits10x15.h"
 
 struct StatsData {
     const char* labelCoins;
@@ -41,29 +44,6 @@ void drawStatsFace(Display& display, int ox, int oy, const StatsData& data) {
                 if (row[c >> 3] & (0x80 >> (c & 7)))
                     display.drawPixel(ox + fx + c, oy + fy + r, BLACK);
             }
-        }
-    };
-
-    // Small-digit dispatch (glyphs extracted from stats.png; digits 3 and
-    // 9 are intentionally absent — the scenes don't use them).
-    auto blitDig = [&](int fx, int fy, char d) {
-        switch (d) {
-            case '0': blit(fx, fy, GLYPH_STATS_DIG_0_W, GLYPH_STATS_DIG_0_H,
-                          GLYPH_STATS_DIG_0_STRIDE, &GLYPH_STATS_DIG_0_ROWS[0][0]); break;
-            case '1': blit(fx, fy, GLYPH_STATS_DIG_1_W, GLYPH_STATS_DIG_1_H,
-                          GLYPH_STATS_DIG_1_STRIDE, &GLYPH_STATS_DIG_1_ROWS[0][0]); break;
-            case '2': blit(fx, fy, GLYPH_STATS_DIG_2_W, GLYPH_STATS_DIG_2_H,
-                          GLYPH_STATS_DIG_2_STRIDE, &GLYPH_STATS_DIG_2_ROWS[0][0]); break;
-            case '4': blit(fx, fy, GLYPH_STATS_DIG_4_W, GLYPH_STATS_DIG_4_H,
-                          GLYPH_STATS_DIG_4_STRIDE, &GLYPH_STATS_DIG_4_ROWS[0][0]); break;
-            case '5': blit(fx, fy, GLYPH_STATS_DIG_5_W, GLYPH_STATS_DIG_5_H,
-                          GLYPH_STATS_DIG_5_STRIDE, &GLYPH_STATS_DIG_5_ROWS[0][0]); break;
-            case '6': blit(fx, fy, GLYPH_STATS_DIG_6_W, GLYPH_STATS_DIG_6_H,
-                          GLYPH_STATS_DIG_6_STRIDE, &GLYPH_STATS_DIG_6_ROWS[0][0]); break;
-            case '7': blit(fx, fy, GLYPH_STATS_DIG_7_W, GLYPH_STATS_DIG_7_H,
-                          GLYPH_STATS_DIG_7_STRIDE, &GLYPH_STATS_DIG_7_ROWS[0][0]); break;
-            case '8': blit(fx, fy, GLYPH_STATS_DIG_8_W, GLYPH_STATS_DIG_8_H,
-                          GLYPH_STATS_DIG_8_STRIDE, &GLYPH_STATS_DIG_8_ROWS[0][0]); break;
         }
     };
 
@@ -139,53 +119,25 @@ void drawStatsFace(Display& display, int ox, int oy, const StatsData& data) {
         blit(fx, 61, GLYPH_STATS_DOT_W, GLYPH_STATS_DOT_H,
              GLYPH_STATS_DOT_STRIDE, &GLYPH_STATS_DOT_ROWS[0][0]);
     };
-    auto dotRow2 = [&](int fx) {
-        blit(fx, 74, GLYPH_STATS_DOT_W, GLYPH_STATS_DOT_H,
-             GLYPH_STATS_DOT_STRIDE, &GLYPH_STATS_DOT_ROWS[0][0]);
+    // Print a numeric string at face-rel (left_fx, baseline_fy) using `font`.
+    auto printNum = [&](const GFXfont* font, int left_fx, int baseline_fy, const char* s) {
+        display.setFont(font);
+        display.setTextColor(BLACK);
+        display.setCursor(ox + left_fx, oy + baseline_fy);
+        display.print(s);
+        display.setFont(nullptr);
     };
-
-    // Big time digits (BIG_0 w=10, BIG_1 w=6, BIG_3 w=10) — minutes share
-    // the ':' colon at y=103.
-    auto blitBig = [&](int fx, char d) {
-        switch (d) {
-            case '0': blit(fx, 102, GLYPH_STATS_BIG_0_W, GLYPH_STATS_BIG_0_H,
-                          GLYPH_STATS_BIG_0_STRIDE, &GLYPH_STATS_BIG_0_ROWS[0][0]); break;
-            case '1': blit(fx, 102, GLYPH_STATS_BIG_1_W, GLYPH_STATS_BIG_1_H,
-                          GLYPH_STATS_BIG_1_STRIDE, &GLYPH_STATS_BIG_1_ROWS[0][0]); break;
-            case '3': blit(fx, 102, GLYPH_STATS_BIG_3_W, GLYPH_STATS_BIG_3_H,
-                          GLYPH_STATS_BIG_3_STRIDE, &GLYPH_STATS_BIG_3_ROWS[0][0]); break;
-        }
+    // 4×7 value row (digits and '.'), baseline = top + 6.
+    auto printValue = [&](int left_fx, int top_fy, const char* s) {
+        printNum(&WatchyDigits4x7, left_fx, top_fy + 6, s);
     };
-    auto blitCol = [&](int fx) {
-        blit(fx, 103, GLYPH_STATS_BIG_COL_W, GLYPH_STATS_BIG_COL_H,
-             GLYPH_STATS_BIG_COL_STRIDE, &GLYPH_STATS_BIG_COL_ROWS[0][0]);
+    // 10×15 big time, baseline = top + 14.
+    auto printBigTime = [&](int left_fx, const char* s) {
+        printNum(&WatchyDigits10x15, left_fx, 102 + 14, s);
     };
-
-    // Small-date digits at y=101. Use the reference's SM_4/SM_5 for scene 0;
-    // scenes 1..6 pull from the hand-authored SM_0/1/2/6/7/8 matching style.
-    auto blitSmDig = [&](int fx, char d) {
-        switch (d) {
-            case '0': blit(fx, 101, GLYPH_STATS_SM_0_W, GLYPH_STATS_SM_0_H,
-                          GLYPH_STATS_SM_0_STRIDE, &GLYPH_STATS_SM_0_ROWS[0][0]); break;
-            case '1': blit(fx, 101, GLYPH_STATS_SM_1_W, GLYPH_STATS_SM_1_H,
-                          GLYPH_STATS_SM_1_STRIDE, &GLYPH_STATS_SM_1_ROWS[0][0]); break;
-            case '2': blit(fx, 101, GLYPH_STATS_SM_2_W, GLYPH_STATS_SM_2_H,
-                          GLYPH_STATS_SM_2_STRIDE, &GLYPH_STATS_SM_2_ROWS[0][0]); break;
-            case '4': blit(fx, 101, GLYPH_STATS_SM_4_W, GLYPH_STATS_SM_4_H,
-                          GLYPH_STATS_SM_4_STRIDE, &GLYPH_STATS_SM_4_ROWS[0][0]); break;
-            case '5': blit(fx, 101, GLYPH_STATS_SM_5_W, GLYPH_STATS_SM_5_H,
-                          GLYPH_STATS_SM_5_STRIDE, &GLYPH_STATS_SM_5_ROWS[0][0]); break;
-            case '6': blit(fx, 101, GLYPH_STATS_SM_6_W, GLYPH_STATS_SM_6_H,
-                          GLYPH_STATS_SM_6_STRIDE, &GLYPH_STATS_SM_6_ROWS[0][0]); break;
-            case '7': blit(fx, 101, GLYPH_STATS_SM_7_W, GLYPH_STATS_SM_7_H,
-                          GLYPH_STATS_SM_7_STRIDE, &GLYPH_STATS_SM_7_ROWS[0][0]); break;
-            case '8': blit(fx, 101, GLYPH_STATS_SM_8_W, GLYPH_STATS_SM_8_H,
-                          GLYPH_STATS_SM_8_STRIDE, &GLYPH_STATS_SM_8_ROWS[0][0]); break;
-        }
-    };
-    auto blitSlash = [&]() {
-        blit(109, 101, GLYPH_STATS_SM_SLASH_W, GLYPH_STATS_SM_SLASH_H,
-             GLYPH_STATS_SM_SLASH_STRIDE, &GLYPH_STATS_SM_SLASH_ROWS[0][0]);
+    // 5×7 date "D/M", baseline = top + 6 (date top is y=101).
+    auto printDate = [&](int left_fx, const char* s) {
+        printNum(&WatchyDigits5x7, left_fx, 101 + 6, s);
     };
 
     // Day-name letters at y=110 (3 letters at x=103, 110, 117; all 5×7).
@@ -210,99 +162,76 @@ void drawStatsFace(Display& display, int ox, int oy, const StatsData& data) {
     auto drawDay = [&](char a, char b, char c) {
         blitLet(103, a); blitLet(110, b); blitLet(117, c);
     };
-    auto drawDate = [&](char d1, char d2) {
-        blitSmDig(103, d1); blitSlash(); blitSmDig(118, d2);
-    };
 
     switch (scene) {
         case 0: {
             // Reference snapshot: 218 ¢ / 2.45 h / 2.15 h / 76% · 10:13 · 4/5 SUN.
-            blit(125, 42, GLYPH_STATS_DIG_2_W, GLYPH_STATS_DIG_2_H, GLYPH_STATS_DIG_2_STRIDE, &GLYPH_STATS_DIG_2_ROWS[0][0]);
-            blit(131, 42, GLYPH_STATS_DIG_1_W, GLYPH_STATS_DIG_1_H, GLYPH_STATS_DIG_1_STRIDE, &GLYPH_STATS_DIG_1_ROWS[0][0]);
-            blit(135, 42, GLYPH_STATS_DIG_8_W, GLYPH_STATS_DIG_8_H, GLYPH_STATS_DIG_8_STRIDE, &GLYPH_STATS_DIG_8_ROWS[0][0]);
-            cent(143);
-            blit(119, 55, GLYPH_STATS_DIG_2_W, GLYPH_STATS_DIG_2_H, GLYPH_STATS_DIG_2_STRIDE, &GLYPH_STATS_DIG_2_ROWS[0][0]);
-            dotRow1(125);
-            blit(128, 55, GLYPH_STATS_DIG_4_W, GLYPH_STATS_DIG_4_H, GLYPH_STATS_DIG_4_STRIDE, &GLYPH_STATS_DIG_4_ROWS[0][0]);
-            blit(135, 55, GLYPH_STATS_DIG_5_W, GLYPH_STATS_DIG_5_H, GLYPH_STATS_DIG_5_STRIDE, &GLYPH_STATS_DIG_5_ROWS[0][0]);
-            hSuffix(55);
-            blit(123, 68, GLYPH_STATS_DIG_2_W, GLYPH_STATS_DIG_2_H, GLYPH_STATS_DIG_2_STRIDE, &GLYPH_STATS_DIG_2_ROWS[0][0]);
-            dotRow2(129);
-            blit(131, 68, GLYPH_STATS_DIG_1_R2_W, GLYPH_STATS_DIG_1_R2_H, GLYPH_STATS_DIG_1_R2_STRIDE, &GLYPH_STATS_DIG_1_R2_ROWS[0][0]);
-            blit(135, 68, GLYPH_STATS_DIG_5_W, GLYPH_STATS_DIG_5_H, GLYPH_STATS_DIG_5_STRIDE, &GLYPH_STATS_DIG_5_ROWS[0][0]);
-            hSuffix(68);
-            blit(129, 80, GLYPH_STATS_DIG_7_W, GLYPH_STATS_DIG_7_H, GLYPH_STATS_DIG_7_STRIDE, &GLYPH_STATS_DIG_7_ROWS[0][0]);
-            blit(135, 80, GLYPH_STATS_DIG_6_W, GLYPH_STATS_DIG_6_H, GLYPH_STATS_DIG_6_STRIDE, &GLYPH_STATS_DIG_6_ROWS[0][0]);
-            pctSuffix();
-            // Big time "10:13" — reference positions.
-            blitBig(50, '1'); blitBig(58, '0'); blitCol(72); blitBig(79, '1'); blitBig(87, '3');
-            drawDate('4', '5');
+            printValue(125, 42, "218"); cent(143);
+            printValue(119, 55, "2.45"); hSuffix(55);
+            printValue(123, 68, "2.15"); hSuffix(68);
+            printValue(129, 80, "76");  pctSuffix();
+            printBigTime(50, "10:13");
+            printDate(103, "4/5");
             drawDay('S', 'U', 'N');
             break;
         }
         case 1: {
-            // 412 ¢ / 1.10 h / 2.20 h / 81% · 11:30 · 5/5 MON
-            blitDig(124, 42, '4'); blitDig(131, 42, '1'); blitDig(135, 42, '2'); cent(143);
-            blitDig(124, 55, '1'); dotRow1(128); blitDig(131, 55, '1'); blitDig(135, 55, '0'); hSuffix(55);
-            blitDig(120, 68, '2'); dotRow2(126); blitDig(129, 68, '2'); blitDig(135, 68, '0'); hSuffix(68);
-            blitDig(131, 80, '8'); blitDig(137, 80, '1'); pctSuffix();
-            blitBig(50, '1'); blitBig(58, '1'); blitCol(68); blitBig(75, '3'); blitBig(87, '0');
-            drawDate('5', '5');
+            printValue(124, 42, "412"); cent(143);
+            printValue(124, 55, "1.10"); hSuffix(55);
+            printValue(120, 68, "2.20"); hSuffix(68);
+            printValue(131, 80, "81");  pctSuffix();
+            printBigTime(50, "11:30");
+            printDate(103, "5/5");
             drawDay('M', 'O', 'N');
             break;
         }
         case 2: {
-            // 507 ¢ / 0.45 h / 2.05 h / 88% · 01:30 · 6/5 TUE
-            blitDig(123, 42, '5'); blitDig(129, 42, '0'); blitDig(135, 42, '7'); cent(143);
-            blitDig(119, 55, '0'); dotRow1(125); blitDig(128, 55, '4'); blitDig(135, 55, '5'); hSuffix(55);
-            blitDig(120, 68, '2'); dotRow2(126); blitDig(129, 68, '0'); blitDig(135, 68, '5'); hSuffix(68);
-            blitDig(129, 80, '8'); blitDig(135, 80, '8'); pctSuffix();
-            blitBig(46, '0'); blitBig(58, '1'); blitCol(68); blitBig(75, '3'); blitBig(87, '0');
-            drawDate('6', '5');
+            printValue(123, 42, "507"); cent(143);
+            printValue(119, 55, "0.45"); hSuffix(55);
+            printValue(120, 68, "2.05"); hSuffix(68);
+            printValue(129, 80, "88");  pctSuffix();
+            printBigTime(46, "01:30");
+            printDate(103, "6/5");
             drawDay('T', 'U', 'E');
             break;
         }
         case 3: {
-            // 600 ¢ / 0.10 h / 2.00 h / 55% · 03:13 · 7/5 WED
-            blitDig(123, 42, '6'); blitDig(129, 42, '0'); blitDig(135, 42, '0'); cent(143);
-            blitDig(122, 55, '0'); dotRow1(128); blitDig(131, 55, '1'); blitDig(135, 55, '0'); hSuffix(55);
-            blitDig(120, 68, '2'); dotRow2(126); blitDig(129, 68, '0'); blitDig(135, 68, '0'); hSuffix(68);
-            blitDig(129, 80, '5'); blitDig(135, 80, '5'); pctSuffix();
-            blitBig(46, '0'); blitBig(58, '3'); blitCol(72); blitBig(79, '1'); blitBig(87, '3');
-            drawDate('7', '5');
+            printValue(123, 42, "600"); cent(143);
+            printValue(122, 55, "0.10"); hSuffix(55);
+            printValue(120, 68, "2.00"); hSuffix(68);
+            printValue(129, 80, "55");  pctSuffix();
+            printBigTime(46, "03:13");
+            printDate(103, "7/5");
             drawDay('W', 'E', 'D');
             break;
         }
         case 4: {
-            // 725 ¢ / 1.50 h / 2.10 h / 60% · 13:13 · 8/5 THU
-            blitDig(123, 42, '7'); blitDig(129, 42, '2'); blitDig(135, 42, '5'); cent(143);
-            blitDig(122, 55, '1'); dotRow1(126); blitDig(129, 55, '5'); blitDig(135, 55, '0'); hSuffix(55);
-            blitDig(122, 68, '2'); dotRow2(128); blitDig(131, 68, '1'); blitDig(135, 68, '0'); hSuffix(68);
-            blitDig(129, 80, '6'); blitDig(135, 80, '0'); pctSuffix();
-            blitBig(50, '1'); blitBig(58, '3'); blitCol(72); blitBig(79, '1'); blitBig(87, '3');
-            drawDate('8', '5');
+            printValue(123, 42, "725"); cent(143);
+            printValue(122, 55, "1.50"); hSuffix(55);
+            printValue(122, 68, "2.10"); hSuffix(68);
+            printValue(129, 80, "60");  pctSuffix();
+            printBigTime(50, "13:13");
+            printDate(103, "8/5");
             drawDay('T', 'H', 'U');
             break;
         }
         case 5: {
-            // 847 ¢ / 2.10 h / 2.12 h / 70% · 10:01 · 1/6 FRI
-            blitDig(122, 42, '8'); blitDig(128, 42, '4'); blitDig(135, 42, '7'); cent(143);
-            blitDig(122, 55, '2'); dotRow1(128); blitDig(131, 55, '1'); blitDig(135, 55, '0'); hSuffix(55);
-            blitDig(122, 68, '2'); dotRow2(128); blitDig(131, 68, '1'); blitDig(135, 68, '2'); hSuffix(68);
-            blitDig(129, 80, '7'); blitDig(135, 80, '0'); pctSuffix();
-            blitBig(50, '1'); blitBig(58, '0'); blitCol(72); blitBig(79, '0'); blitBig(91, '1');
-            drawDate('1', '6');
+            printValue(122, 42, "847"); cent(143);
+            printValue(122, 55, "2.10"); hSuffix(55);
+            printValue(122, 68, "2.12"); hSuffix(68);
+            printValue(129, 80, "70");  pctSuffix();
+            printBigTime(50, "10:01");
+            printDate(103, "1/6");
             drawDay('F', 'R', 'I');
             break;
         }
         case 6: {
-            // 164 ¢ / 1.45 h / 2.08 h / 85% · 00:30 · 2/6 SAT
-            blitDig(124, 42, '1'); blitDig(128, 42, '6'); blitDig(134, 42, '4'); cent(143);
-            blitDig(121, 55, '1'); dotRow1(125); blitDig(128, 55, '4'); blitDig(135, 55, '5'); hSuffix(55);
-            blitDig(120, 68, '2'); dotRow2(126); blitDig(129, 68, '0'); blitDig(135, 68, '8'); hSuffix(68);
-            blitDig(129, 80, '8'); blitDig(135, 80, '5'); pctSuffix();
-            blitBig(42, '0'); blitBig(54, '0'); blitCol(68); blitBig(75, '3'); blitBig(87, '0');
-            drawDate('2', '6');
+            printValue(124, 42, "164"); cent(143);
+            printValue(121, 55, "1.45"); hSuffix(55);
+            printValue(120, 68, "2.08"); hSuffix(68);
+            printValue(129, 80, "85");  pctSuffix();
+            printBigTime(42, "00:30");
+            printDate(103, "2/6");
             drawDay('S', 'A', 'T');
             break;
         }
