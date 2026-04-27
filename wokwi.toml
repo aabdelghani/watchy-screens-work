@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = '.pio/build/watchy_v3/firmware.bin'
+elf      = '.pio/build/watchy_v3/firmware.elf'

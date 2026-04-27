@@ -1,25 +1,18 @@
-#include <Arduino.h>
-#include <GxEPD2_BW.h>
+#include <Watchy.h>
 #include "faces/stats.h"
+#include "faces/goodmorning.h"
+#include "faces/multiday.h"
 #include "mock/mock_data.h"
 
-// ── Hardware configuration (Watchy v2) ─────────────────────────────
-// GDEH0154D67 200×200 1.54" E-Ink
-GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> display(
-    GxEPD2_154_D67(/*CS=*/5, /*DC=*/10, /*RST=*/9, /*BUSY=*/19));
+// Persisted across deep sleep. Storing only a tick counter — not the
+// MockState itself — because MockState has member initializers whose ctor
+// re-runs on every wake and would clobber the persistent value. A fresh
+// MockState is fast-forwarded to mockTickCount on each refresh.
+RTC_DATA_ATTR uint32_t mockTickCount = 0;
+RTC_DATA_ATTR uint8_t  currentFaceIdx = 0;   // 0=stats, 1=goodmorning, 2=multiday
 
-const int PIN_UP   = 26;
-const int PIN_DOWN = 25;
-
-// ── State ──────────────────────────────────────────────────────────
-MockState mock;
-enum Face { FACE_STATS, FACE_COUNT };
-Face currentFace = FACE_STATS;
-bool forceRedraw = true;
-
-// ── Dithered border (checkerboard outside octagonal face area) ─────
 template <typename Display>
-void drawDitheredBorder(Display& d) {
+static void drawDitheredBorder(Display& d) {
     const int SCREEN = 200;
     const int FACE_W = 176;
     const int FACE_H = 136;
@@ -32,7 +25,7 @@ void drawDitheredBorder(Display& d) {
         int faceLeft, faceRight;
 
         if (localY < 0 || localY >= FACE_H) {
-            faceLeft = FACE_W;   // no face in this row
+            faceLeft = FACE_W;
             faceRight = -1;
         } else {
             if (localY < C) {
@@ -53,65 +46,77 @@ void drawDitheredBorder(Display& d) {
             bool inside = (localY >= 0 && localY < FACE_H) &&
                           (localX >= faceLeft && localX <= faceRight);
             if (!inside && ((x + y) & 1) == 0) {
-                d.drawPixel(x, y, 0);   // black checker
+                d.drawPixel(x, y, 0);
             }
         }
     }
 }
 
-// ── Button handling ────────────────────────────────────────────────
-void handleButtons() {
-    static bool lastUp = HIGH;
-    static bool lastDown = HIGH;
-    bool up   = digitalRead(PIN_UP);
-    bool down = digitalRead(PIN_DOWN);
+const watchySettings kSettings = {
+    /* cityID                */ "",
+    /* lat                   */ "",
+    /* lon                   */ "",
+    /* weatherAPIKey         */ "",
+    /* weatherURL            */ "",
+    /* weatherUnit           */ "imperial",
+    /* weatherLang           */ "en",
+    /* weatherUpdateInterval */ 30,
+    /* ntpServer             */ "pool.ntp.org",
+    /* gmtOffset             */ 0,
+    /* vibrateOClock         */ false,
+};
 
-    if (lastUp == HIGH && up == LOW) {
-        currentFace = static_cast<Face>((currentFace + 1) % FACE_COUNT);
-        forceRedraw = true;
-    }
-    if (lastDown == HIGH && down == LOW) {
-        currentFace = static_cast<Face>((currentFace - 1 + FACE_COUNT) % FACE_COUNT);
-        forceRedraw = true;
-    }
-    lastUp   = up;
-    lastDown = down;
-}
+class MyWatchFace : public Watchy {
+public:
+    MyWatchFace() : Watchy(kSettings) {}
 
-// ── Setup ──────────────────────────────────────────────────────────
-void setup() {
-    Serial.begin(115200);
-    delay(100);
+    void drawWatchFace() override {
+        // Rebuild mock at the persistent frame.
+        MockState mock;
+        for (uint32_t i = 0; i < mockTickCount; ++i) mock.tick();
 
-    pinMode(PIN_UP,   INPUT_PULLUP);
-    pinMode(PIN_DOWN, INPUT_PULLUP);
+        display.fillScreen(0xFFFF);
+        drawDitheredBorder(display);
 
-    display.init(0, true);          // 0 = full refresh on init
-    display.setFullWindow();
-    display.fillScreen(0xFFFF);     // white
-    display.display(false);
-}
-
-// ── Main loop ──────────────────────────────────────────────────────
-void loop() {
-    handleButtons();
-
-    // Update mock state once per real second
-    mock.tick();
-
-    // Redraw every frame (E-Ink partial update is fast enough for 1 Hz)
-    display.fillScreen(0xFFFF);     // clear to white
-    drawDitheredBorder(display);    // checkerboard border
-
-    switch (currentFace) {
-        case FACE_STATS:
-        default: {
-            StatsData d = mock.currentStats();
-            drawStatsFace(display, 12, 32, d);
-            break;
+        switch (currentFaceIdx) {
+            case 0: drawStatsFace      (display, 12, 32, mock.currentStats());       break;
+            case 1: drawGoodMorningFace(display, 12, 32, mock.currentGoodMorning()); break;
+            case 2: drawMultidayFace   (display, 12, 32, mock.currentMultiday());    break;
         }
+
+        // Each refresh advances animation by one tick so the once-per-minute
+        // RTC wake yields a visible scene change.
+        mockTickCount++;
     }
 
-    display.display(true);          // partial update
-    delay(1000);
-}
+    void handleButtonPress() override {
+        // Only intercept buttons while showing the watch face — leave the
+        // SDK's menu navigation alone.
+        if (guiState == WATCHFACE_STATE) {
+            if (digitalRead(UP_BTN_PIN) == LOW) {
+                mockTickCount++;
+                showWatchFace(true);
+                return;
+            }
+            if (digitalRead(DOWN_BTN_PIN) == LOW) {
+                // Step "back" by ticking 6× — stats and goodmorning cycle on
+                // (frame/3) % 7 and % 5 respectively, so this reverses both
+                // approximately enough for design preview.
+                mockTickCount += 6;
+                showWatchFace(true);
+                return;
+            }
+            if (digitalRead(MENU_BTN_PIN) == LOW) {
+                currentFaceIdx = (currentFaceIdx + 1) % 3;
+                showWatchFace(true);
+                return;
+            }
+        }
+        Watchy::handleButtonPress();
+    }
+};
+
+MyWatchFace watchy;
+
+void setup() { watchy.init(); }
+void loop()  {}
