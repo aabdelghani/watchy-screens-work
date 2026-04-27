@@ -1,0 +1,6 @@
+{
+  "name": "SSD1681",
+  "author": "watchy-screens",
+  "pins": [ "VCC", "GND", "DIN", "CLK", "CS", "DC", "RST", "BUSY" ],
+  "display": { "width": 200, "height": 200 }
+}

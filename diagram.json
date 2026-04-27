@@ -4,7 +4,7 @@
   "editor": "wokwi",
   "parts": [
     { "type": "board-esp32-s3-devkitc-1", "id": "esp",      "top": 0,    "left": 0    },
-    { "type": "board-ssd1681",            "id": "epd",      "top": -50,  "left": 220  },
+    { "type": "chip-ssd1681",             "id": "epd",      "top": -50,  "left": 220  },
     { "type": "wokwi-pushbutton", "id": "btn_menu", "top":   0, "left": 480, "attrs": { "color": "black", "label": "MENU" } },
     { "type": "wokwi-pushbutton", "id": "btn_back", "top":  60, "left": 480, "attrs": { "color": "black", "label": "BACK" } },
     { "type": "wokwi-pushbutton", "id": "btn_up",   "top": 120, "left": 480, "attrs": { "color": "black", "label": "UP"   } },
