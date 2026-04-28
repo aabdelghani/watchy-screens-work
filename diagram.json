@@ -3,27 +3,28 @@
   "author": "watchy-screens",
   "editor": "wokwi",
   "parts": [
-    { "type": "board-esp32-s3-devkitc-1", "id": "esp",      "top": 0,    "left": 0    },
-    { "type": "chip-ssd1681",             "id": "epd",      "top": -50,  "left": 220  },
-    { "type": "wokwi-pushbutton", "id": "btn_menu", "top":   0, "left": 480, "attrs": { "color": "black", "label": "MENU" } },
-    { "type": "wokwi-pushbutton", "id": "btn_back", "top":  60, "left": 480, "attrs": { "color": "black", "label": "BACK" } },
-    { "type": "wokwi-pushbutton", "id": "btn_up",   "top": 120, "left": 480, "attrs": { "color": "black", "label": "UP"   } },
-    { "type": "wokwi-pushbutton", "id": "btn_down", "top": 180, "left": 480, "attrs": { "color": "black", "label": "DOWN" } }
+    { "type": "board-esp32-s3-devkitc-1",  "id": "esp", "top":   0,    "left":   0 },
+    { "type": "wokwi-ili9341",             "id": "lcd", "top":  -20,   "left": 320 },
+    { "type": "wokwi-pushbutton",          "id": "btn_menu", "top":   0, "left": -180, "attrs": { "color": "black", "label": "MENU" } },
+    { "type": "wokwi-pushbutton",          "id": "btn_back", "top":  70, "left": -180, "attrs": { "color": "black", "label": "BACK" } },
+    { "type": "wokwi-pushbutton",          "id": "btn_up",   "top": 140, "left": -180, "attrs": { "color": "black", "label": "UP"   } },
+    { "type": "wokwi-pushbutton",          "id": "btn_down", "top": 210, "left": -180, "attrs": { "color": "black", "label": "DOWN" } },
+    { "type": "wokwi-led",                 "id": "blink",    "top": -160, "left": -50, "attrs": { "color": "red", "label": "BLINK" } }
   ],
   "connections": [
-    [ "esp:GND.1", "epd:GND",  "black",  [] ],
-    [ "esp:3V3",   "epd:VCC",  "red",    [] ],
-    [ "esp:33",    "epd:CS",   "orange", [] ],
-    [ "esp:34",    "epd:DC",   "green",  [] ],
-    [ "esp:35",    "epd:RST",  "yellow", [] ],
-    [ "esp:36",    "epd:BUSY", "purple", [] ],
-    [ "esp:48",    "epd:DIN",  "blue",   [] ],
-    [ "esp:47",    "epd:CLK",  "cyan",   [] ],
+    [ "esp:GND.1", "lcd:GND",  "black",  [] ],
+    [ "esp:3V3",   "lcd:VCC",  "red",    [] ],
+    [ "esp:10",    "lcd:CS",   "orange", [] ],
+    [ "esp:9",     "lcd:D/C",  "green",  [] ],
+    [ "esp:11",    "lcd:MOSI", "blue",   [] ],
+    [ "esp:12",    "lcd:SCK",  "cyan",   [] ],
 
     [ "btn_menu:1.l", "esp:7", "magenta", [] ], [ "btn_menu:2.r", "esp:GND.2", "black", [] ],
     [ "btn_back:1.l", "esp:6", "magenta", [] ], [ "btn_back:2.r", "esp:GND.2", "black", [] ],
     [ "btn_up:1.l",   "esp:0", "magenta", [] ], [ "btn_up:2.r",   "esp:GND.2", "black", [] ],
-    [ "btn_down:1.l", "esp:8", "magenta", [] ], [ "btn_down:2.r", "esp:GND.2", "black", [] ]
+    [ "btn_down:1.l", "esp:8", "magenta", [] ], [ "btn_down:2.r", "esp:GND.2", "black", [] ],
+
+    [ "esp:21", "blink:A", "yellow", [] ], [ "blink:C", "esp:GND.2", "black", [] ]
   ],
   "dependencies": {}
 }
