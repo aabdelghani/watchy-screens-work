@@ -198,23 +198,15 @@ public:
 
     void handleButtonPress() override {
         // Only intercept buttons while showing the watch face — leave the
-        // SDK's menu navigation alone.
+        // SDK's menu navigation alone (MENU/BACK fall through to default).
         if (guiState == WATCHFACE_STATE) {
             if (digitalRead(UP_BTN_PIN) == LOW) {
-                mockTickCount++;
+                currentFaceIdx = (currentFaceIdx + 1) % 3;
                 showWatchFace(true);
                 return;
             }
             if (digitalRead(DOWN_BTN_PIN) == LOW) {
-                // Step "back" by ticking 6× — stats and goodmorning cycle on
-                // (frame/3) % 7 and % 5 respectively, so this reverses both
-                // approximately enough for design preview.
-                mockTickCount += 6;
-                showWatchFace(true);
-                return;
-            }
-            if (digitalRead(MENU_BTN_PIN) == LOW) {
-                currentFaceIdx = (currentFaceIdx + 1) % 3;
+                currentFaceIdx = (currentFaceIdx + 2) % 3;   // == −1 mod 3
                 showWatchFace(true);
                 return;
             }
