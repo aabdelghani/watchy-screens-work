@@ -1,8 +1,12 @@
+#include "faces/frame.h"        // kFaceLeftInset / kFaceRightInset
 #include "faces/stats.h"
 #include "faces/goodmorning.h"
 #include "faces/multiday.h"
 #include "mock/mock_data.h"
 
+// 50% checker dither outside the face octagon. The octagon edge is
+// taken pixel-exact from kFaceLeftInset / kFaceRightInset (extracted
+// from references/multyday.png alpha) so chamfers match the references.
 template <typename Display>
 static void drawDitheredBorder(Display& d) {
     const int SCREEN = 200;
@@ -10,7 +14,6 @@ static void drawDitheredBorder(Display& d) {
     const int FACE_H = 136;
     const int OX = 12;
     const int OY = 32;
-    const int C  = 16;   // chamfer
 
     for (int y = 0; y < SCREEN; ++y) {
         int localY = y - OY;
@@ -20,17 +23,8 @@ static void drawDitheredBorder(Display& d) {
             faceLeft = FACE_W;
             faceRight = -1;
         } else {
-            if (localY < C) {
-                faceLeft  = C - localY;
-                faceRight = FACE_W - 1 - (C - localY);
-            } else if (localY >= FACE_H - C) {
-                int dd = localY - (FACE_H - C) + 1;
-                faceLeft  = dd;
-                faceRight = FACE_W - 1 - dd;
-            } else {
-                faceLeft  = 0;
-                faceRight = FACE_W - 1;
-            }
+            faceLeft  = kFaceLeftInset[localY];
+            faceRight = FACE_W - 1 - kFaceRightInset[localY];
         }
 
         for (int x = 0; x < SCREEN; ++x) {
@@ -87,7 +81,7 @@ static void renderFrame() {
     for (uint32_t i = 0; i < mockTickCount; ++i) mock.tick();
 
     canvas.fillScreen(0xFFFF);
-    if (currentFaceIdx != 3) drawDitheredBorder(canvas);  // POWER reference has clean chamfer
+    drawDitheredBorder(canvas);
 
     switch (currentFaceIdx) {
         case 0: drawStatsFace      (canvas, 12, 32, mock.currentStats());       break;
