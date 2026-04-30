@@ -167,19 +167,17 @@ inline GoodMorningData MockState::currentGoodMorning() const {
 
 // ── Power mock ─────────────────────────────────────────────────────
 
-// Five hand-picked snapshots that rotate every ~3 sim ticks. Scene 0
+// Three hand-picked snapshots that rotate every ~3 sim ticks. Scene 0
 // is pinned to the reference PNG ("27 / 10:13 / 4/5 / SUN") so design
 // review against the reference is always one keypress away.
 inline PowerData MockState::currentPower() const {
-    static const PowerData kScenes[5] = {
+    static const PowerData kScenes[3] = {
         // sceneIndex (BIG), hour, minute, day, month, dowIndex
         { 27, 10, 13, 4, 5, 6 /*SUN*/ },  // 0: reference snapshot
-        {  5,  7, 30, 3, 3, 0 /*MON*/ },  // 1: morning, low
-        { 42, 14, 25, 8, 4, 1 /*TUE*/ },  // 2: midday, building
-        { 89, 20,  0, 1, 9, 4 /*FRI*/ },  // 3: evening peak
-        { 63,  2, 48, 7, 2, 5 /*SAT*/ },  // 4: late-night
+        {  5, 10, 10, 3, 3, 0 /*MON*/ },  // 1
+        { 42, 13, 10, 8, 4, 1 /*TUE*/ },  // 2
     };
-    return kScenes[(frame_ / 3) % 5];
+    return kScenes[(frame_ / 3) % 3];
 }
 
 // Static snapshot matching the reference PNG exactly.
