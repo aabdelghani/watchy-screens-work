@@ -168,17 +168,21 @@ void drawPowerFace(Display& display, int ox, int oy, const PowerData& data) {
     drawBig(n / 10, kBigLeftX);
     drawBig(n % 10, kBigRightX);
 
-    // 4. Time "HH:MM" via WatchyDigits10x15. yBaseline = top + 14
-    //    (15-tall digits with yOffset=-14 → glyph spans top..top+14).
+    // 4. Time "HH:MM" via WatchyDigits10x15. Reference positions
+    //    (face-x): H1@50, H2@58, ':'@72, M1@79, M2@87 — extra 2 px
+    //    of breathing room on each side of the colon vs auto-advance.
+    //    yBaseline = top + 14 (15-tall digits with yOffset=-14).
     {
-        char buf[6];
-        buf[0] = '0' + (data.hour / 10) % 10;
-        buf[1] = '0' + data.hour % 10;
-        buf[2] = ':';
-        buf[3] = '0' + (data.minute / 10) % 10;
-        buf[4] = '0' + data.minute % 10;
-        buf[5] = 0;
-        drawGfxStr(display, WatchyDigits10x15, ox + kTimeX, oy + kTimeY + 14, buf, BLACK);
+        const int yB = oy + kTimeY + 14;
+        char h1 = '0' + (data.hour   / 10) % 10;
+        char h2 = '0' + (data.hour   % 10);
+        char m1 = '0' + (data.minute / 10) % 10;
+        char m2 = '0' + (data.minute % 10);
+        drawGfxChar(display, WatchyDigits10x15, ox + kTimeX +  0, yB, h1,  BLACK);  // col 50
+        drawGfxChar(display, WatchyDigits10x15, ox + kTimeX +  8, yB, h2,  BLACK);  // col 58
+        drawGfxChar(display, WatchyDigits10x15, ox + kTimeX + 22, yB, ':', BLACK);  // col 72
+        drawGfxChar(display, WatchyDigits10x15, ox + kTimeX + 29, yB, m1,  BLACK);  // col 79
+        drawGfxChar(display, WatchyDigits10x15, ox + kTimeX + 37, yB, m2,  BLACK);  // col 87
     }
 
     // 5. Date "D/M". Positions hand-tuned to match the weekday's
