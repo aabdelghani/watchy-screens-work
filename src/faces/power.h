@@ -181,17 +181,16 @@ void drawPowerFace(Display& display, int ox, int oy, const PowerData& data) {
         drawGfxStr(display, WatchyDigits10x15, ox + kTimeX, oy + kTimeY + 14, buf, BLACK);
     }
 
-    // 5. Date "D/M". yBaseline = top + 6 (7-tall glyphs with yOffset=-6).
+    // 5. Date "D/M". Positions hand-tuned to match the weekday's
+    //    cols 103..121 span: digit / slash / digit at (103, 109, 117).
+    //    yBaseline = top + 6 (7-tall glyphs with yOffset=-6).
     {
-        char buf[6];
-        int i = 0;
-        if (data.day >= 10) buf[i++] = '0' + (data.day / 10) % 10;
-        buf[i++] = '0' + data.day % 10;
-        buf[i++] = '/';
-        if (data.month >= 10) buf[i++] = '0' + (data.month / 10) % 10;
-        buf[i++] = '0' + data.month % 10;
-        buf[i] = 0;
-        drawGfxStr(display, WatchyDigits5x7, ox + kDateX, oy + kDateY + 6, buf, BLACK);
+        const int yB = oy + kDateY + 6;
+        char dDigit = '0' + (data.day   % 10);
+        char mDigit = '0' + (data.month % 10);
+        drawGfxChar(display, WatchyDigits5x7, ox + kDateX + 0,  yB, dDigit, BLACK);  // X at col 103
+        drawGfxChar(display, WatchyDigits5x7, ox + kDateX + 6,  yB, '/',    BLACK);  // / at col 109
+        drawGfxChar(display, WatchyDigits5x7, ox + kDateX + 14, yB, mDigit, BLACK);  // Y at col 117
     }
 
     // 6. Weekday "MON".."SUN" via 5×7 SM letters. Reference uses a
