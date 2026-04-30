@@ -165,11 +165,12 @@ inline GoodMorningData MockState::currentGoodMorning() const {
     return goodMorningScene((int)((frame_ / 3) % 5));
 }
 
-// ── Power mock (static for now) ────────────────────────────────────
+// ── Power mock ─────────────────────────────────────────────────────
 
 inline PowerData MockState::currentPower() const {
     PowerData d{};
-    d.sceneIndex = 0;
+    // Rotate BIG center 00..99, one step per ~3 sim ticks.
+    d.sceneIndex = (int)((frame_ / 3) % 100);
     return d;
 }
 
