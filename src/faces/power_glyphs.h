@@ -454,6 +454,86 @@ static const uint8_t GLYPH_POW_SM_N_ROWS[7][1] = {
     { 0x88 },
 };
 
+// Day-of-week letters (5×7), hand-authored to match SM_S / SM_U / SM_N
+// style. Together with S, U, N these cover MON, TUE, WED, THU, FRI, SAT, SUN.
+
+static const int GLYPH_POW_SM_M_W = 5;
+static const int GLYPH_POW_SM_M_H = 7;
+static const int GLYPH_POW_SM_M_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_M_ROWS[7][1] = {
+    { 0x88 }, { 0xD8 }, { 0xA8 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0x88 },
+};
+
+static const int GLYPH_POW_SM_O_W = 5;
+static const int GLYPH_POW_SM_O_H = 7;
+static const int GLYPH_POW_SM_O_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_O_ROWS[7][1] = {
+    { 0x70 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0x70 },
+};
+
+static const int GLYPH_POW_SM_T_W = 5;
+static const int GLYPH_POW_SM_T_H = 7;
+static const int GLYPH_POW_SM_T_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_T_ROWS[7][1] = {
+    { 0xF8 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 },
+};
+
+static const int GLYPH_POW_SM_W_W = 5;
+static const int GLYPH_POW_SM_W_H = 7;
+static const int GLYPH_POW_SM_W_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_W_ROWS[7][1] = {
+    { 0x88 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0xA8 }, { 0xA8 }, { 0x50 },
+};
+
+static const int GLYPH_POW_SM_E_W = 5;
+static const int GLYPH_POW_SM_E_H = 7;
+static const int GLYPH_POW_SM_E_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_E_ROWS[7][1] = {
+    { 0xF0 }, { 0x80 }, { 0x80 }, { 0xE0 }, { 0x80 }, { 0x80 }, { 0xF0 },
+};
+
+static const int GLYPH_POW_SM_D_W = 5;
+static const int GLYPH_POW_SM_D_H = 7;
+static const int GLYPH_POW_SM_D_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_D_ROWS[7][1] = {
+    { 0xE0 }, { 0x90 }, { 0x88 }, { 0x88 }, { 0x88 }, { 0x90 }, { 0xE0 },
+};
+
+static const int GLYPH_POW_SM_H_W = 5;
+static const int GLYPH_POW_SM_H_H = 7;
+static const int GLYPH_POW_SM_H_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_H_ROWS[7][1] = {
+    { 0x88 }, { 0x88 }, { 0x88 }, { 0xF8 }, { 0x88 }, { 0x88 }, { 0x88 },
+};
+
+static const int GLYPH_POW_SM_F_W = 5;
+static const int GLYPH_POW_SM_F_H = 7;
+static const int GLYPH_POW_SM_F_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_F_ROWS[7][1] = {
+    { 0xF0 }, { 0x80 }, { 0x80 }, { 0xE0 }, { 0x80 }, { 0x80 }, { 0x80 },
+};
+
+static const int GLYPH_POW_SM_R_W = 5;
+static const int GLYPH_POW_SM_R_H = 7;
+static const int GLYPH_POW_SM_R_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_R_ROWS[7][1] = {
+    { 0xE0 }, { 0x90 }, { 0x90 }, { 0xE0 }, { 0xA0 }, { 0x90 }, { 0x90 },
+};
+
+static const int GLYPH_POW_SM_A_W = 5;
+static const int GLYPH_POW_SM_A_H = 7;
+static const int GLYPH_POW_SM_A_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_A_ROWS[7][1] = {
+    { 0x70 }, { 0x88 }, { 0x88 }, { 0xF8 }, { 0x88 }, { 0x88 }, { 0x88 },
+};
+
+static const int GLYPH_POW_SM_I_W = 5;
+static const int GLYPH_POW_SM_I_H = 7;
+static const int GLYPH_POW_SM_I_STRIDE = 1;
+static const uint8_t GLYPH_POW_SM_I_ROWS[7][1] = {
+    { 0xF8 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0x20 }, { 0xF8 },
+};
+
 // ── BIG center digits (29×47, hand-authored to match BIG_2 / BIG_7) ──
 // Row patterns:
 //   HBAR_TOP/BOT  = 0x7F,0xFF,0xFF,0xF0  (cols 1..27, both outer corners chipped)

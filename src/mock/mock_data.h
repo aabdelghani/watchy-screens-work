@@ -171,6 +171,14 @@ inline PowerData MockState::currentPower() const {
     PowerData d{};
     // Rotate BIG center 00..99, one step per ~3 sim ticks.
     d.sceneIndex = (int)((frame_ / 3) % 100);
+
+    // Accelerated clock (×20) so minutes/hours visibly tick in the sim.
+    uint32_t totalSec = frame_ * 20;
+    d.hour     = (totalSec / 3600) % 24;
+    d.minute   = (totalSec / 60) % 60;
+    d.day      = 1 + (totalSec / 86400) % 31;
+    d.month    = 5;
+    d.dowIndex = (int)((frame_ / 5) % 7);  // step weekday every ~5 sim ticks
     return d;
 }
 
