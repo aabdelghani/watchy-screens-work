@@ -87,12 +87,13 @@ static void renderFrame() {
     for (uint32_t i = 0; i < mockTickCount; ++i) mock.tick();
 
     canvas.fillScreen(0xFFFF);
-    drawDitheredBorder(canvas);
+    if (currentFaceIdx != 3) drawDitheredBorder(canvas);  // POWER reference has clean chamfer
 
     switch (currentFaceIdx) {
         case 0: drawStatsFace      (canvas, 12, 32, mock.currentStats());       break;
         case 1: drawGoodMorningFace(canvas, 12, 32, mock.currentGoodMorning()); break;
         case 2: drawMultidayFace   (canvas, 12, 32, mock.currentMultiday());    break;
+        case 3: drawPowerFace      (canvas, 12, 32, mock.currentPower());       break;
     }
 
     tft.drawRGBBitmap(LCD_OFFSET_X, LCD_OFFSET_Y, canvas.getBuffer(), CANVAS_W, CANVAS_H);
@@ -110,7 +111,7 @@ void setup() {
     SPI.begin(TFT_SCK_PIN, -1, TFT_MOSI_PIN, TFT_CS_PIN);
     tft.begin();
     tft.setRotation(0);
-    tft.fillScreen(ILI9341_BLACK);
+    tft.fillScreen(ILI9341_WHITE);
 
     renderFrame();
     digitalWrite(BLINK_PIN, LOW);
@@ -125,8 +126,8 @@ void loop() {
     bool back = digitalRead(BTN_BACK_PIN) == LOW;
     bool up   = digitalRead(BTN_UP_PIN)   == LOW;
     bool down = digitalRead(BTN_DOWN_PIN) == LOW;
-    if (up   && !prevUp)   { currentFaceIdx = (currentFaceIdx + 1) % 3;     needRedraw = true; }
-    if (down && !prevDown) { currentFaceIdx = (currentFaceIdx + 2) % 3;     needRedraw = true; }
+    if (up   && !prevUp)   { currentFaceIdx = (currentFaceIdx + 1) % 4;     needRedraw = true; }
+    if (down && !prevDown) { currentFaceIdx = (currentFaceIdx + 3) % 4;     needRedraw = true; }
     if (menu && !prevMenu) { mockTickCount++;                               needRedraw = true; }
     if (back && !prevBack) { mockTickCount += 6;                            needRedraw = true; }
     prevMenu = menu; prevBack = back; prevUp = up; prevDown = down;
@@ -157,7 +158,7 @@ void loop() {
 // re-runs on every wake and would clobber the persistent value. A fresh
 // MockState is fast-forwarded to mockTickCount on each refresh.
 RTC_DATA_ATTR uint32_t mockTickCount = 0;
-RTC_DATA_ATTR uint8_t  currentFaceIdx = 0;   // 0=stats, 1=goodmorning, 2=multiday
+RTC_DATA_ATTR uint8_t  currentFaceIdx = 0;   // 0=stats, 1=goodmorning, 2=multiday, 3=power
 
 const watchySettings kSettings = {
     /* cityID                */ "",
@@ -189,6 +190,7 @@ public:
             case 0: drawStatsFace      (display, 12, 32, mock.currentStats());       break;
             case 1: drawGoodMorningFace(display, 12, 32, mock.currentGoodMorning()); break;
             case 2: drawMultidayFace   (display, 12, 32, mock.currentMultiday());    break;
+            case 3: drawPowerFace      (display, 12, 32, mock.currentPower());       break;
         }
 
         // Each refresh advances animation by one tick so the once-per-minute
@@ -201,12 +203,12 @@ public:
         // SDK's menu navigation alone (MENU/BACK fall through to default).
         if (guiState == WATCHFACE_STATE) {
             if (digitalRead(UP_BTN_PIN) == LOW) {
-                currentFaceIdx = (currentFaceIdx + 1) % 3;
+                currentFaceIdx = (currentFaceIdx + 1) % 4;
                 showWatchFace(true);
                 return;
             }
             if (digitalRead(DOWN_BTN_PIN) == LOW) {
-                currentFaceIdx = (currentFaceIdx + 2) % 3;   // == −1 mod 3
+                currentFaceIdx = (currentFaceIdx + 3) % 4;   // == −1 mod 4
                 showWatchFace(true);
                 return;
             }

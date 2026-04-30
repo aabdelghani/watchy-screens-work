@@ -6,6 +6,7 @@
 #include "../faces/multiday.h"
 #include "../faces/stats.h"
 #include "../faces/goodmorning.h"
+#include "../faces/power.h"
 
 // Mock state evolves over ticks (1 tick = ~1 real second).
 // Animation spec from brief:
@@ -18,6 +19,7 @@ public:
     MultidayData currentMultiday() const; // snapshot for rendering
     StatsData currentStats() const;       // snapshot for rendering
     GoodMorningData currentGoodMorning() const;
+    PowerData currentPower() const;
 
 private:
     uint32_t frame_ = 0;
@@ -161,6 +163,14 @@ inline StatsData MockState::currentStats() const {
 inline GoodMorningData MockState::currentGoodMorning() const {
     // 5 snapshots, switching every ~3 ticks.
     return goodMorningScene((int)((frame_ / 3) % 5));
+}
+
+// ── Power mock (static for now) ────────────────────────────────────
+
+inline PowerData MockState::currentPower() const {
+    PowerData d{};
+    d.sceneIndex = 0;
+    return d;
 }
 
 // Static snapshot matching the reference PNG exactly.
