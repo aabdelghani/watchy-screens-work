@@ -173,11 +173,11 @@ inline GoodMorningData MockState::currentGoodMorning() const {
 inline PowerData MockState::currentPower() const {
     static const PowerData kScenes[5] = {
         // sceneIndex (BIG), hour, minute, day, month, dowIndex
-        { 27, 10, 13,  4,  5, 6 /*SUN*/ },  // 0: reference snapshot
-        {  5,  7, 30, 12,  3, 0 /*MON*/ },  // 1: morning, low
-        { 42, 14, 25, 18,  7, 1 /*TUE*/ },  // 2: midday, building
-        { 89, 20,  0, 23, 11, 4 /*FRI*/ },  // 3: evening peak
-        { 63,  2, 48, 30,  4, 5 /*SAT*/ },  // 4: late-night
+        { 27, 10, 13, 4, 5, 6 /*SUN*/ },  // 0: reference snapshot
+        {  5,  7, 30, 3, 3, 0 /*MON*/ },  // 1: morning, low
+        { 42, 14, 25, 8, 4, 1 /*TUE*/ },  // 2: midday, building
+        { 89, 20,  0, 1, 9, 4 /*FRI*/ },  // 3: evening peak
+        { 63,  2, 48, 7, 2, 5 /*SAT*/ },  // 4: late-night
     };
     return kScenes[(frame_ / 3) % 5];
 }
