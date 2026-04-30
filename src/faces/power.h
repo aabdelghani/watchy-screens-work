@@ -35,10 +35,11 @@ inline void drawSm(Display& d, const uint8_t* rows, int x, int y, int w, int h, 
     }
 }
 
-// Draw one GFXfont glyph at the given top-left (no baseline math).
-// ESP32 unified memory — PROGMEM data is read directly.
+// Draw one GFXfont glyph relative to (xRef, yBaseline). Honours
+// xOffset/yOffset so glyphs like ':' (which sit lower than digits)
+// align correctly. ESP32 unified memory — PROGMEM data is read directly.
 template <typename Display>
-inline int drawGfxChar(Display& d, const GFXfont& font, int xLeft, int yTop, char c, uint16_t color) {
+inline int drawGfxChar(Display& d, const GFXfont& font, int xRef, int yBaseline, char c, uint16_t color) {
     uint8_t u = (uint8_t)c;
     if (u < font.first || u > font.last) return 0;
     const GFXglyph& g = font.glyph[u - font.first];
@@ -46,16 +47,17 @@ inline int drawGfxChar(Display& d, const GFXfont& font, int xLeft, int yTop, cha
     int total = (int)g.width * (int)g.height;
     for (int i = 0; i < total; ++i) {
         if (bm[i >> 3] & (0x80 >> (i & 7))) {
-            d.drawPixel(xLeft + (i % g.width), yTop + (i / g.width), color);
+            d.drawPixel(xRef + g.xOffset + (i % g.width),
+                        yBaseline + g.yOffset + (i / g.width), color);
         }
     }
     return g.xAdvance;
 }
 
 template <typename Display>
-inline void drawGfxStr(Display& d, const GFXfont& font, int xLeft, int yTop, const char* s, uint16_t color) {
-    int x = xLeft;
-    for (; *s; ++s) x += drawGfxChar(d, font, x, yTop, *s, color);
+inline void drawGfxStr(Display& d, const GFXfont& font, int xRef, int yBaseline, const char* s, uint16_t color) {
+    int x = xRef;
+    for (; *s; ++s) x += drawGfxChar(d, font, x, yBaseline, *s, color);
 }
 
 inline const uint8_t* smLetter(char c) {
@@ -106,8 +108,11 @@ void drawPowerFace(Display& display, int ox, int oy, const PowerData& data) {
     constexpr int kDateX = 103, kDateY = 115;
     constexpr int kDateW = 22,  kDateH = 7;
 
+    // Weekday clear is 22 wide so the rightmost column of the static
+    // "SUN" — the N's right edge sits at face-x 121..122 — is fully
+    // wiped before we draw a shorter day name like "TUE" / "SAT".
     constexpr int kDowX = 103, kDowY = 124;
-    constexpr int kDowW = 18,  kDowH = 7;
+    constexpr int kDowW = 22,  kDowH = 7;
 
     // 1. Base: blit static reference, clipped to octagon.
     for (int r = 0; r < GLYPH_POW_FACE_H; ++r) {
@@ -163,7 +168,8 @@ void drawPowerFace(Display& display, int ox, int oy, const PowerData& data) {
     drawBig(n / 10, kBigLeftX);
     drawBig(n % 10, kBigRightX);
 
-    // 4. Time "HH:MM" via WatchyDigits10x15.
+    // 4. Time "HH:MM" via WatchyDigits10x15. yBaseline = top + 14
+    //    (15-tall digits with yOffset=-14 → glyph spans top..top+14).
     {
         char buf[6];
         buf[0] = '0' + (data.hour / 10) % 10;
@@ -172,11 +178,10 @@ void drawPowerFace(Display& display, int ox, int oy, const PowerData& data) {
         buf[3] = '0' + (data.minute / 10) % 10;
         buf[4] = '0' + data.minute % 10;
         buf[5] = 0;
-        drawGfxStr(display, WatchyDigits10x15, ox + kTimeX, oy + kTimeY, buf, BLACK);
+        drawGfxStr(display, WatchyDigits10x15, ox + kTimeX, oy + kTimeY + 14, buf, BLACK);
     }
 
-    // 5. Date "D/M" — just the day for now (matches reference's "4/5"
-    //    style but with both fields dynamic).
+    // 5. Date "D/M". yBaseline = top + 6 (7-tall glyphs with yOffset=-6).
     {
         char buf[6];
         int i = 0;
@@ -186,7 +191,7 @@ void drawPowerFace(Display& display, int ox, int oy, const PowerData& data) {
         if (data.month >= 10) buf[i++] = '0' + (data.month / 10) % 10;
         buf[i++] = '0' + data.month % 10;
         buf[i] = 0;
-        drawGfxStr(display, WatchyDigits5x7, ox + kDateX, oy + kDateY, buf, BLACK);
+        drawGfxStr(display, WatchyDigits5x7, ox + kDateX, oy + kDateY + 6, buf, BLACK);
     }
 
     // 6. Weekday "MON".."SUN" via 5×7 SM letters, 6 px advance.
