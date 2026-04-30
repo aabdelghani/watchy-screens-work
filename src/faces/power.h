@@ -194,14 +194,16 @@ void drawPowerFace(Display& display, int ox, int oy, const PowerData& data) {
         drawGfxStr(display, WatchyDigits5x7, ox + kDateX, oy + kDateY + 6, buf, BLACK);
     }
 
-    // 6. Weekday "MON".."SUN" via 5×7 SM letters, 6 px advance.
+    // 6. Weekday "MON".."SUN" via 5×7 SM letters. Reference uses a
+    //    2-px gap between letters (advance = 7), giving the static
+    //    "SUN" at cols 103/110/117.
     {
         const char* name = dowName(data.dowIndex);
         int x = kDowX;
         for (int i = 0; name[i]; ++i) {
             const uint8_t* g = smLetter(name[i]);
             if (g) drawSm(display, g, ox + x, oy + kDowY, 5, 7, BLACK);
-            x += 6;
+            x += 7;
         }
     }
 }
