@@ -117,8 +117,12 @@ void drawGoodMorningFace(Display& display, int ox, int oy, const GoodMorningData
     GM_BLIT(LBL_N, 51, 52);
     GM_BLIT(LBL_S, 58, 52);
     // Value: '+' sits 1 row down from digits (centered in row), so split.
-    drawValStr(130, 53, "+");
-    drawValStr(137, 52, data.coinsDelta + 1);  // skip leading '+' since we drew it
+    // '+' aligned with the sleep-debt '+' below (x=123) so the value
+    // column shares a left edge across all three rows; gives two-digit
+    // values like "+33" (each '3' is 6 px wide) breathing room at the
+    // inner frame (x=152).
+    drawValStr(123, 53, "+");
+    drawValStr(130, 52, data.coinsDelta + 1);  // skip leading '+' since we drew it
 
     // ── Row 3: "SLEEP DEBT" + "+130" at y=65..71 ──────────────────────
     GM_BLIT(LBL_S, 34, 65);
@@ -147,16 +151,18 @@ void drawGoodMorningFace(Display& display, int ox, int oy, const GoodMorningData
     GM_BLIT(LBL_E, 89, 78);
     // Value "+N%" — N comes from data (1..9) rendered via WatchyDigits4x7.
     // The PCT bitmap stays (¢-style).
-    GM_BLIT(VAL_PLUS,   126, 78);
+    // Aligned with the sleep-debt '+' at x=123 so the value column
+    // shares a left edge with the coins and sleep-debt rows.
+    GM_BLIT(VAL_PLUS,   123, 78);
     {
         char rb[2] = { (char)('0' + (data.resiliencePercent % 10)), 0 };
         display.setFont(&WatchyDigits4x7);
         display.setTextColor(BLACK);
-        display.setCursor(ox + 133, oy + 77 + 6);   // baseline = top + (h-1)
+        display.setCursor(ox + 130, oy + 77 + 6);   // baseline = top + (h-1)
         display.print(rb);
         display.setFont(nullptr);
     }
-    GM_BLIT(VAL_PCT,    139, 77);
+    GM_BLIT(VAL_PCT,    136, 77);
 
     // ── Subtitle "SLEEP DEBT" (small 5×7) at y=93..99 ─────────────────
     GM_BLIT(SUB_S,  63, 93);
