@@ -100,11 +100,45 @@ void drawMultidayFace(Display& display, int ox, int oy, const MultidayData& data
     // "3" at y=60, right edge x=167
     blitGlyph(ox + 164, oy + 60, GLYPH_DIG_3_W, GLYPH_DIG_3_H,
               GLYPH_DIG_3_STRIDE, GLYPH_DIG_3_ROWS);
-    // "18" at y=88, right edge x=169
-    blitGlyph(ox + 163, oy + 88, GLYPH_DIG_1_W, GLYPH_DIG_1_H,
-              GLYPH_DIG_1_STRIDE, GLYPH_DIG_1_ROWS);
-    blitGlyph(ox + 166, oy + 88, GLYPH_DIG_8_W, GLYPH_DIG_8_H,
-              GLYPH_DIG_8_STRIDE, GLYPH_DIG_8_ROWS);
+    // Midline value label — tracks data.midlineY. Reference midline
+    // y=82 reads "18"; slope is +1 unit/px (line moves down → value
+    // increases). Glyph is centered on the line (H=7, top = midlineY−3).
+    {
+        int v = data.midlineY - 64;
+        if (v < 0)  v = 0;
+        if (v > 99) v = 99;
+        const int yTop   = oy + data.midlineY - 3;
+        // Shifted right from 169 → 171 so tens-W=4 digits ("2x") clear
+        // the midline overrun (x=161) by 2 px instead of overlapping it.
+        const int xRight = ox + 171;
+
+        auto pickDigit = [](char d, int& w, const uint8_t*& rows) {
+            switch (d) {
+                case '0': w = GLYPH_DIG_0_W; rows = GLYPH_DIG_0_ROWS; break;
+                case '1': w = GLYPH_DIG_1_W; rows = GLYPH_DIG_1_ROWS; break;
+                case '2': w = GLYPH_DIG_2_W; rows = GLYPH_DIG_2_ROWS; break;
+                case '3': w = GLYPH_DIG_3_W; rows = GLYPH_DIG_3_ROWS; break;
+                case '4': w = GLYPH_DIG_4_W; rows = GLYPH_DIG_4_ROWS; break;
+                case '5': w = GLYPH_DIG_5_W; rows = GLYPH_DIG_5_ROWS; break;
+                case '6': w = GLYPH_DIG_6_W; rows = GLYPH_DIG_6_ROWS; break;
+                case '7': w = GLYPH_DIG_7_W; rows = GLYPH_DIG_7_ROWS; break;
+                case '8': w = GLYPH_DIG_8_W; rows = GLYPH_DIG_8_ROWS; break;
+                default:  w = GLYPH_DIG_9_W; rows = GLYPH_DIG_9_ROWS; break;
+            }
+        };
+
+        int wO; const uint8_t* gO;
+        pickDigit((char)('0' + v % 10), wO, gO);
+        const int xOnes = xRight - wO + 1;
+
+        if (v >= 10) {
+            int wT; const uint8_t* gT;
+            pickDigit((char)('0' + v / 10), wT, gT);
+            const int xTens = xOnes - 1 - wT;   // 1-px inter-digit gap
+            blitGlyph(xTens, yTop, wT, 7, 1, gT);
+        }
+        blitGlyph(xOnes, yTop, wO, 7, 1, gO);
+    }
 
     // Left-side triangle marker from the reference, at face-rel (13,44).
     blitGlyph(ox + 13, oy + 44, GLYPH_MARKER_R_W, GLYPH_MARKER_R_H,

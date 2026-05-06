@@ -80,11 +80,12 @@ inline MultidayData MockState::currentMultiday() const {
         d.bars[i].check     = kRefBars[i].check;
     }
 
-    // Midline oscillates as a 40-tick triangle wave around y=82 (±10 px),
-    // staying well within the chart bounds (y=31..103).
-    uint32_t p = frame_ % 40;
-    int off = (p < 20) ? (int)p : (int)(40 - p);  // 0..20..0
-    d.midlineY = 72 + off;
+    // Midline oscillates as an 8-tick triangle wave between y=79..83
+    // so the right-edge value label cycles 15..19 (slope +1 unit/px
+    // from y=82 → 18).
+    uint32_t p = frame_ % 8;
+    int off = (p < 4) ? (int)p : (int)(8 - p);  // 0..4..0
+    d.midlineY = 79 + off;
 
     // Random per-frame permutation of the 7 source bars across slots:
     // Fisher-Yates seeded from frame_, so the shuffle is deterministic
