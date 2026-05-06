@@ -187,60 +187,48 @@ inline PowerData MockState::currentPower() const {
     };
     PowerData d = kScenes[(frame_ / 3) % 3];
 
-    // Ball travels the full inverted-U around the BIG digits with 45°
-    // chamfered corners and small horizontal stubs at the top flanking
-    // "60" and "0". Top stubs sit at y=28 (3 px higher than the tab's
-    // mid-row) so the corner sits flush with the frame's top edge:
-    //   0) Top stub L:     (x=60..41, y=28)         20 steps (going left)
-    //   1) Top chamfer L:  (40,28)→(36,32)           5 steps (down-left)
-    //   2) Vertical L:     (35, y=33..90)           58 steps
-    //   3) Bottom ch. L:   (35,91)→(39,95)           5 steps (down-right)
-    //   4) Bottom horiz.:  (x=40..134, y=96)        95 steps
-    //   5) Bottom ch. R:   (135,96)→(139,92)         5 steps (up-right)
-    //   6) Vertical R:     (140, y=91..33)          59 steps
-    //   7) Top chamfer R:  (140,33)→(136,29)         5 steps (up-left)
-    //   8) Top stub R:     (x=135..116, y=28)       20 steps (going left)
-    // Total 272 path positions. 180-tick triangle wave (~3 px/tick).
-    constexpr int kSegs[9] = { 20, 5, 58, 5, 95, 5, 59, 5, 20 };
-    constexpr int kTotal   = 272;
-    constexpr int kHalf    = 90;
-
-    uint32_t p = frame_ % (2 * kHalf);
-    int phase = (p < (uint32_t)kHalf) ? (int)p : (int)(2 * kHalf - p);  // 0..90..0
-    int s = phase * kTotal / kHalf;
-
-    int seg = 0;
-    while (seg < 9 && s >= kSegs[seg]) { s -= kSegs[seg]; ++seg; }
-    switch (seg) {
-        case 0:  d.ballX = 60 - s;   d.ballY = 28;        break;  // top stub L
-        case 1:  d.ballX = 40 - s;   d.ballY = 28 + s;    break;  // top chamfer L
-        case 2:  d.ballX = 35;       d.ballY = 33 + s;    break;  // vertical L
-        case 3:  d.ballX = 35 + s;   d.ballY = 91 + s;    break;  // bottom chamfer L
-        case 4:  d.ballX = 40 + s;   d.ballY = 96;        break;  // bottom horizontal
-        case 5:  d.ballX = 135 + s;  d.ballY = 96 - s;    break;  // bottom chamfer R
-        case 6:  d.ballX = 140;      d.ballY = 91 - s;    break;  // vertical R
-        case 7:  d.ballX = 140 - s;  d.ballY = 33 - s;    break;  // top chamfer R
-        default: d.ballX = 135 - s;  d.ballY = 28;        break;  // top stub R
-    }
+    // Ball cycles through 8 discrete stop positions along the U-track,
+    // dwelling at each for kDwell ticks before teleporting to the next.
+    // Two of the stops (#3 and #5) sit on the dark-to-light boundary
+    // on the bottom corridor (cols 50 and 125), where the per-pixel
+    // rule renders the ball half-WHITE / half-BLACK at the
+    // cap-edge vertical bands.
+    struct BallStop { int x; int y; };
+    constexpr BallStop kStops[8] = {
+        {  50, 28 },   // 0: top stub L (middle, beside "60")
+        {  35, 50 },   // 1: vertical L (upper portion)
+        {  35, 80 },   // 2: vertical L (lower portion)
+        {  50, 96 },   // 3: bottom corridor — LEFT half/half boundary
+        {  87, 96 },   // 4: bottom corridor — middle (full dither)
+        { 125, 96 },   // 5: bottom corridor — RIGHT half/half boundary
+        { 140, 80 },   // 6: vertical R (lower portion)
+        { 125, 28 },   // 7: top stub R (middle, beside "0")
+    };
+    constexpr uint32_t kDwell = 4;  // ticks per stop (~4 s)
+    const BallStop& stop = kStops[(frame_ / kDwell) % 8];
+    d.ballX = stop.x;
+    d.ballY = stop.y;
     return d;
 }
 
 // ── Hourly mock ────────────────────────────────────────────────────
 //
-// Phase 1: pin to the reference snapshot ("42 / 10:13 / 4/5 / SUN /
-// dot at x=87"). The 5 dynamic fields (sceneIndex, time, day/month,
-// dowIndex, dotX) are exposed in HourlyData ready to be animated in
-// a follow-up; for now they all hold the reference values.
+// 5 hand-picked scenes that rotate every kDwell ticks. Each scene
+// varies four fields (BIG sceneIndex, time, date, weekday). The
+// dotX / checkerVariant fields stay at reference values since the
+// renderer doesn't currently consume them. BIG values come from the
+// user-requested test set: 47, 56, 06, 08, 25.
 inline HourlyData MockState::currentHourly() const {
-    HourlyData d{};
-    d.sceneIndex = 42;
-    d.hour       = 10;
-    d.minute     = 13;
-    d.day        = 4;
-    d.month      = 5;
-    d.dowIndex   = 6;   // SUN
-    d.dotX       = 87;  // reference position; future animation will sweep
-    return d;
+    static const HourlyData kScenes[5] = {
+        // sceneIndex, hour, minute, day, month, dowIndex,    dotX, checkerVariant
+        { 47, 10, 30,  4,  5, 6 /*SUN*/,                       87, 0 },  // 0
+        { 56, 11, 15,  1,  3, 0 /*MON*/,                       87, 0 },  // 1
+        {  6,  9, 45,  2,  8, 2 /*WED*/,                       87, 0 },  // 2
+        {  8, 14, 20,  3,  4, 4 /*FRI*/,                       87, 0 },  // 3
+        { 25, 16,  5,  5,  7, 5 /*SAT*/,                       87, 0 },  // 4
+    };
+    constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
+    return kScenes[(frame_ / kDwell) % 5];
 }
 
 // Static snapshot matching the reference PNG exactly.

@@ -21,13 +21,14 @@
 //   - DOW (3 letters) at 5×7 SM
 //   - The single black dot indicator at the top
 struct HourlyData {
-    int sceneIndex;   // 0..99 BIG center value (was static "42")
-    int hour;         // 0..23
-    int minute;       // 0..59
-    int day;          // 1..31
-    int month;        // 1..12
-    int dowIndex;     // 0=MON .. 6=SUN
-    int dotX;         // face-rel x of dot center; reference value 87
+    int sceneIndex;     // 0..99 BIG center value (was static "42")
+    int hour;           // 0..23
+    int minute;         // 0..59
+    int day;            // 1..31
+    int month;          // 1..12
+    int dowIndex;       // 0=MON .. 6=SUN
+    int dotX;           // face-rel x of dot center; reference value 87
+    int checkerVariant; // 0..3 — pattern drawn in the four corner chevron boxes
 };
 
 template <typename Display>
@@ -37,27 +38,30 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
     const uint16_t WHITE = 0xFFFF;
 
     // ── Slot positions (face-relative, scanned from hourly.png) ──
-    // BIG "42": left digit 17×32 at (71, 50), right at (91, 50).
-    // 3-px gap between digits at cols 88..90.
+    // BIG "42": left digit 17×32 at (70, 50), right at (95, 50).
+    // 8-px gap between digits at cols 87..94 — wider than the static
+    // reference's 4-px gap so the digits don't read as cramped on
+    // tight pairings (e.g. "06", "08", "25").
     constexpr int kBigY      = 50;
-    constexpr int kBigLeftX  = 71;
-    constexpr int kBigRightX = 91;
+    constexpr int kBigLeftX  = 70;
+    constexpr int kBigRightX = 95;
     constexpr int kBigW      = 17;
     constexpr int kBigH      = 32;
 
-    // Time HH:MM, 10×15, top-left of bottom row.
-    constexpr int kTimeX = 52, kTimeY = 101;
-    constexpr int kTimeW = 49, kTimeH = 15;
+    // Time HH:MM, 10×15. Anchored at x=47 — 5 px left of the original
+    // reference position so the time block reads with more breathing
+    // room on the left and even all-wide pairings like "08:08" stay
+    // well clear of the date column at x=105.
+    constexpr int kTimeX = 47, kTimeY = 101;
+    constexpr int kTimeW = 56, kTimeH = 15;
 
-    // Date D/M and weekday SUN, stacked on the right.
-    constexpr int kDateX = 106, kDateY = 100;
+    // Date D/M and weekday SUN, stacked on the right. Anchored at
+    // x=105 (was 106) so the leftmost static-art pixel of '4' / 'S'
+    // (col 105) gets cleared and replaced by the dynamic glyph.
+    constexpr int kDateX = 105, kDateY = 100;
     constexpr int kDateW = 22,  kDateH = 7;
-    constexpr int kDowX  = 106, kDowY = 109;
+    constexpr int kDowX  = 105, kDowY = 109;
     constexpr int kDowW  = 22,  kDowH = 7;
-
-    // Dot indicator at top, single pixel at (87, 8) in the reference.
-    constexpr int kDotStaticX = 87;
-    constexpr int kDotY       = 8;
 
     // 1. Base: blit static reference, clipped to octagon.
     for (int r = 0; r < GLYPH_HRL_FACE_H; ++r) {
@@ -76,12 +80,15 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
             for (int c = 0; c < w; ++c)
                 display.drawPixel(ox + x + c, oy + y + r, WHITE);
     };
-    // BIG slot covers both digits + 3-px gap → 17 + 3 + 17 = 37 wide.
-    clearRect(kBigLeftX, kBigY, kBigW + 3 + kBigW, kBigH);
+    // BIG slot spans the leftmost-edge of the left digit to the
+    // rightmost-edge of the right digit (cols 70..109 with the
+    // current layout). Computed from the layout constants so
+    // changes to spacing automatically resize the clear.
+    clearRect(kBigLeftX, kBigY, kBigRightX + kBigW - kBigLeftX, kBigH);
     clearRect(kTimeX,    kTimeY, kTimeW, kTimeH);
     clearRect(kDateX,    kDateY, kDateW, kDateH);
     clearRect(kDowX,     kDowY,  kDowW,  kDowH);
-    display.drawPixel(ox + kDotStaticX, oy + kDotY, WHITE);
+    // Static dot above "60" is left intact (no clear / no redraw).
 
     // 3. BIG digits.
     auto bigRows = [](int digit) -> const uint8_t* {
@@ -114,20 +121,24 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
     drawBig(n / 10, kBigLeftX);
     drawBig(n % 10, kBigRightX);
 
-    // 4. Time HH:MM via WatchyDigits10x15. Same intra-time spacing as
-    //    the POWER face but anchored at x=52 to match the reference's
-    //    leftmost "1" set-pixel column (col 54).
+    // 4. Time HH:MM via WatchyDigits10x15. Each digit advances by its
+    //    own xAdvance (so wide pairs like "30", "20", "08" don't
+    //    overlap), with a 2-px padding around the colon so it doesn't
+    //    read as flush against the digits.
     {
         const int yB = oy + kTimeY + 14;
         char h1 = '0' + (data.hour   / 10) % 10;
         char h2 = '0' + (data.hour   % 10);
         char m1 = '0' + (data.minute / 10) % 10;
         char m2 = '0' + (data.minute % 10);
-        drawGfxChar(display, WatchyDigits10x15, ox + kTimeX +  0, yB, h1,  BLACK);
-        drawGfxChar(display, WatchyDigits10x15, ox + kTimeX +  8, yB, h2,  BLACK);
-        drawGfxChar(display, WatchyDigits10x15, ox + kTimeX + 22, yB, ':', BLACK);
-        drawGfxChar(display, WatchyDigits10x15, ox + kTimeX + 29, yB, m1,  BLACK);
-        drawGfxChar(display, WatchyDigits10x15, ox + kTimeX + 37, yB, m2,  BLACK);
+        int x = ox + kTimeX;
+        x += drawGfxChar(display, WatchyDigits10x15, x, yB, h1, BLACK);
+        x += drawGfxChar(display, WatchyDigits10x15, x, yB, h2, BLACK);
+        x += 2;
+        x += drawGfxChar(display, WatchyDigits10x15, x, yB, ':', BLACK);
+        x += 2;
+        x += drawGfxChar(display, WatchyDigits10x15, x, yB, m1, BLACK);
+        drawGfxChar(display, WatchyDigits10x15, x, yB, m2, BLACK);
     }
 
     // 5. Date "D/M" at (kDateX, kDateY). Single-digit day/month per
@@ -152,14 +163,11 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
         }
     }
 
-    // 7. Dot indicator. Reference scene = static position (kDotStaticX),
-    //    but data.dotX can override for animation.
-    {
-        int dx = data.dotX;
-        if (dx < 0) dx = 0;
-        if (dx >= GLYPH_HRL_FACE_W) dx = GLYPH_HRL_FACE_W - 1;
-        display.drawPixel(ox + dx, oy + kDotY, BLACK);
-    }
+    // (Dot indicator and per-scene corner chevrons are intentionally
+    // disabled for now. The static art keeps the reference dot above
+    // "60" and the static fish-scale chevrons at the four corners.
+    // HourlyData::dotX and HourlyData::checkerVariant remain in the
+    // struct for future re-enabling.)
 }
 
 #endif // WATCHY_SCREENS_HOURLY_H
