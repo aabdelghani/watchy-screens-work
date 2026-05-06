@@ -187,20 +187,20 @@ inline PowerData MockState::currentPower() const {
 
     // Ball travels the full inverted-U around the BIG digits with 45°
     // chamfered corners and small horizontal stubs at the top flanking
-    // "60" and "0". Top stubs sit at y=29 (2 px higher than the tab's
-    // mid-row) so the corner sits closer to the frame's top edge:
-    //   0) Top stub L:     (x=60..41, y=29)         20 steps (going left)
-    //   1) Top chamfer L:  (40,29)→(36,33)           5 steps (down-left)
-    //   2) Vertical L:     (35, y=34..90)           57 steps
+    // "60" and "0". Top stubs sit at y=28 (3 px higher than the tab's
+    // mid-row) so the corner sits flush with the frame's top edge:
+    //   0) Top stub L:     (x=60..41, y=28)         20 steps (going left)
+    //   1) Top chamfer L:  (40,28)→(36,32)           5 steps (down-left)
+    //   2) Vertical L:     (35, y=33..90)           58 steps
     //   3) Bottom ch. L:   (35,91)→(39,95)           5 steps (down-right)
     //   4) Bottom horiz.:  (x=40..134, y=96)        95 steps
     //   5) Bottom ch. R:   (135,96)→(139,92)         5 steps (up-right)
-    //   6) Vertical R:     (140, y=91..34)          58 steps
-    //   7) Top chamfer R:  (140,34)→(136,30)         5 steps (up-left)
-    //   8) Top stub R:     (x=135..116, y=29)       20 steps (going left)
-    // Total 270 path positions. 180-tick triangle wave (~3 px/tick).
-    constexpr int kSegs[9] = { 20, 5, 57, 5, 95, 5, 58, 5, 20 };
-    constexpr int kTotal   = 270;
+    //   6) Vertical R:     (140, y=91..33)          59 steps
+    //   7) Top chamfer R:  (140,33)→(136,29)         5 steps (up-left)
+    //   8) Top stub R:     (x=135..116, y=28)       20 steps (going left)
+    // Total 272 path positions. 180-tick triangle wave (~3 px/tick).
+    constexpr int kSegs[9] = { 20, 5, 58, 5, 95, 5, 59, 5, 20 };
+    constexpr int kTotal   = 272;
     constexpr int kHalf    = 90;
 
     uint32_t p = frame_ % (2 * kHalf);
@@ -210,15 +210,15 @@ inline PowerData MockState::currentPower() const {
     int seg = 0;
     while (seg < 9 && s >= kSegs[seg]) { s -= kSegs[seg]; ++seg; }
     switch (seg) {
-        case 0:  d.ballX = 60 - s;   d.ballY = 29;        break;  // top stub L
-        case 1:  d.ballX = 40 - s;   d.ballY = 29 + s;    break;  // top chamfer L
-        case 2:  d.ballX = 35;       d.ballY = 34 + s;    break;  // vertical L
+        case 0:  d.ballX = 60 - s;   d.ballY = 28;        break;  // top stub L
+        case 1:  d.ballX = 40 - s;   d.ballY = 28 + s;    break;  // top chamfer L
+        case 2:  d.ballX = 35;       d.ballY = 33 + s;    break;  // vertical L
         case 3:  d.ballX = 35 + s;   d.ballY = 91 + s;    break;  // bottom chamfer L
         case 4:  d.ballX = 40 + s;   d.ballY = 96;        break;  // bottom horizontal
         case 5:  d.ballX = 135 + s;  d.ballY = 96 - s;    break;  // bottom chamfer R
         case 6:  d.ballX = 140;      d.ballY = 91 - s;    break;  // vertical R
-        case 7:  d.ballX = 140 - s;  d.ballY = 34 - s;    break;  // top chamfer R
-        default: d.ballX = 135 - s;  d.ballY = 29;        break;  // top stub R
+        case 7:  d.ballX = 140 - s;  d.ballY = 33 - s;    break;  // top chamfer R
+        default: d.ballX = 135 - s;  d.ballY = 28;        break;  // top stub R
     }
     return d;
 }
