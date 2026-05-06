@@ -7,6 +7,7 @@
 #include "../faces/stats.h"
 #include "../faces/goodmorning.h"
 #include "../faces/power.h"
+#include "../faces/hourly.h"
 
 // Mock state evolves over ticks (1 tick = ~1 real second).
 // Animation spec from brief:
@@ -20,6 +21,7 @@ public:
     StatsData currentStats() const;       // snapshot for rendering
     GoodMorningData currentGoodMorning() const;
     PowerData currentPower() const;
+    HourlyData currentHourly() const;
 
 private:
     uint32_t frame_ = 0;
@@ -220,6 +222,24 @@ inline PowerData MockState::currentPower() const {
         case 7:  d.ballX = 140 - s;  d.ballY = 33 - s;    break;  // top chamfer R
         default: d.ballX = 135 - s;  d.ballY = 28;        break;  // top stub R
     }
+    return d;
+}
+
+// ── Hourly mock ────────────────────────────────────────────────────
+//
+// Phase 1: pin to the reference snapshot ("42 / 10:13 / 4/5 / SUN /
+// dot at x=87"). The 5 dynamic fields (sceneIndex, time, day/month,
+// dowIndex, dotX) are exposed in HourlyData ready to be animated in
+// a follow-up; for now they all hold the reference values.
+inline HourlyData MockState::currentHourly() const {
+    HourlyData d{};
+    d.sceneIndex = 42;
+    d.hour       = 10;
+    d.minute     = 13;
+    d.day        = 4;
+    d.month      = 5;
+    d.dowIndex   = 6;   // SUN
+    d.dotX       = 87;  // reference position; future animation will sweep
     return d;
 }
 
