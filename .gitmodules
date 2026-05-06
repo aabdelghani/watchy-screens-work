@@ -1,0 +1,3 @@
+[submodule "external/ssd1681"]
+	path = external/ssd1681
+	url = https://github.com/libdriver/ssd1681.git

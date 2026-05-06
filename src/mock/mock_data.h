@@ -6,6 +6,8 @@
 #include "../faces/multiday.h"
 #include "../faces/stats.h"
 #include "../faces/goodmorning.h"
+#include "../faces/power.h"
+#include "../faces/hourly.h"
 
 // Mock state evolves over ticks (1 tick = ~1 real second).
 // Animation spec from brief:
@@ -18,6 +20,8 @@ public:
     MultidayData currentMultiday() const; // snapshot for rendering
     StatsData currentStats() const;       // snapshot for rendering
     GoodMorningData currentGoodMorning() const;
+    PowerData currentPower() const;
+    HourlyData currentHourly() const;
 
 private:
     uint32_t frame_ = 0;
@@ -78,11 +82,12 @@ inline MultidayData MockState::currentMultiday() const {
         d.bars[i].check     = kRefBars[i].check;
     }
 
-    // Midline oscillates as a 40-tick triangle wave around y=82 (±10 px),
-    // staying well within the chart bounds (y=31..103).
-    uint32_t p = frame_ % 40;
-    int off = (p < 20) ? (int)p : (int)(40 - p);  // 0..20..0
-    d.midlineY = 72 + off;
+    // Midline oscillates as an 8-tick triangle wave between y=79..83
+    // so the right-edge value label cycles 15..19 (slope +1 unit/px
+    // from y=82 → 18).
+    uint32_t p = frame_ % 8;
+    int off = (p < 4) ? (int)p : (int)(8 - p);  // 0..4..0
+    d.midlineY = 79 + off;
 
     // Random per-frame permutation of the 7 source bars across slots:
     // Fisher-Yates seeded from frame_, so the shuffle is deterministic
@@ -161,6 +166,69 @@ inline StatsData MockState::currentStats() const {
 inline GoodMorningData MockState::currentGoodMorning() const {
     // 5 snapshots, switching every ~3 ticks.
     return goodMorningScene((int)((frame_ / 3) % 5));
+}
+
+// ── Power mock ─────────────────────────────────────────────────────
+
+// Three hand-picked snapshots that rotate every ~3 sim ticks. Scene 0
+// is pinned to the reference PNG ("27 / 10:13 / 4/5 / SUN") so design
+// review against the reference is always one keypress away.
+//
+// bottomLeftValue / bottomRightValue are arbitrary 1..59 values
+// (customer spec: "any value 1..59, just make it editable from code").
+// ballX/ballY are overwritten below with a U-path sweep so the ball
+// glides continuously even while the digit scenes cycle.
+inline PowerData MockState::currentPower() const {
+    static const PowerData kScenes[3] = {
+        // sceneIndex, h, m, d, mo, dow,           btmL, btmR, ballX, ballY
+        { 27, 10, 13, 4, 5, 6 /*SUN*/,             38,   19,   0,    0 },  // 0: reference
+        {  5, 10, 10, 3, 3, 0 /*MON*/,             12,   47,   0,    0 },  // 1
+        { 42, 13, 10, 8, 4, 1 /*TUE*/,              5,   33,   0,    0 },  // 2
+    };
+    PowerData d = kScenes[(frame_ / 3) % 3];
+
+    // Ball cycles through 8 discrete stop positions along the U-track,
+    // dwelling at each for kDwell ticks before teleporting to the next.
+    // Two of the stops (#3 and #5) sit on the dark-to-light boundary
+    // on the bottom corridor (cols 50 and 125), where the per-pixel
+    // rule renders the ball half-WHITE / half-BLACK at the
+    // cap-edge vertical bands.
+    struct BallStop { int x; int y; };
+    constexpr BallStop kStops[8] = {
+        {  50, 28 },   // 0: top stub L (middle, beside "60")
+        {  35, 50 },   // 1: vertical L (upper portion)
+        {  35, 80 },   // 2: vertical L (lower portion)
+        {  50, 96 },   // 3: bottom corridor — LEFT half/half boundary
+        {  87, 96 },   // 4: bottom corridor — middle (full dither)
+        { 125, 96 },   // 5: bottom corridor — RIGHT half/half boundary
+        { 140, 80 },   // 6: vertical R (lower portion)
+        { 125, 28 },   // 7: top stub R (middle, beside "0")
+    };
+    constexpr uint32_t kDwell = 4;  // ticks per stop (~4 s)
+    const BallStop& stop = kStops[(frame_ / kDwell) % 8];
+    d.ballX = stop.x;
+    d.ballY = stop.y;
+    return d;
+}
+
+// ── Hourly mock ────────────────────────────────────────────────────
+//
+// 5 hand-picked scenes that rotate every kDwell ticks. Each scene
+// varies four fields (BIG sceneIndex, time, date, weekday). The
+// dotX / checkerVariant fields stay at reference values since the
+// renderer doesn't currently consume them. BIG values come from the
+// user-requested test set: 47, 56, 06, 08, 25.
+inline HourlyData MockState::currentHourly() const {
+    static const HourlyData kScenes[5] = {
+        // sceneIndex, hour, minute, day, month, dowIndex,    dotX, checkerVariant
+        { 47, 10, 30,  4,  5, 6 /*SUN*/,                       87, 0 },  // 0
+        { 56, 11, 15,  1,  3, 0 /*MON*/,                       87, 0 },  // 1
+        {  6,  9, 45,  2,  8, 2 /*WED*/,                       87, 0 },  // 2
+        {  8, 14, 20,  3,  4, 4 /*FRI*/,                       87, 0 },  // 3
+        { 25, 16,  5,  5,  7, 5 /*SAT*/,                       87, 0 },  // 4
+    };
+    constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
+    return kScenes[(frame_ / kDwell) % 5];
 }
 
 // Static snapshot matching the reference PNG exactly.

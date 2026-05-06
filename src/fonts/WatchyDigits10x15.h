@@ -7,6 +7,7 @@
 // continuous (no per-row padding).
 
 #include <stdint.h>
+#include <Arduino.h>   // PROGMEM
 #include <gfxfont.h>
 
 const uint8_t WatchyDigits10x15_Bitmaps[] PROGMEM = {
