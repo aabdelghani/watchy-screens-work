@@ -75,6 +75,29 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
         }
     }
 
+    // 1b. Fill "isolated white dots" inside the chamfer chevrons —
+    //     whites with 5+ black neighbors that visually read as gaps
+    //     in an otherwise-dithered triangle. Positions hand-picked
+    //     from the static reference; complaints surfaced first at the
+    //     BL corner near minute 39 ((18, 113)).
+    static constexpr int16_t kChamferDots[][2] = {
+        // TL chamfer
+        {  9,  23 }, {  8,  25 }, {  7,  26 }, {  9,  26 },
+        {  6,  27 }, { 10,  27 }, { 11,  28 }, {  6,  29 },
+        { 12,  29 }, {  5,  30 }, {  4,  31 }, { 12,  31 },
+        {  3,  32 }, {  2,  33 }, { 27,  33 },
+        // TR chamfer
+        { 142,   6 }, { 161,  16 }, { 162,  17 }, { 163,  18 },
+        { 165,  21 }, { 166,  23 }, { 147,  33 },
+        // BL chamfer
+        { 19, 114 }, { 12, 115 }, { 12, 117 }, { 13, 119 },
+        // BR chamfer
+        { 140, 129 }, { 142, 129 }, { 144, 129 },
+    };
+    for (const auto& p : kChamferDots) {
+        display.drawPixel(ox + p[0], oy + p[1], BLACK);
+    }
+
     // 2. Clear dynamic slots back to white.
     auto clearRect = [&](int x, int y, int w, int h) {
         for (int r = 0; r < h; ++r)
