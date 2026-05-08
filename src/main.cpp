@@ -4,6 +4,7 @@
 #include "faces/multiday.h"
 #include "faces/power.h"
 #include "faces/hourly.h"
+#include "faces/biosync.h"
 #include "mock/mock_data.h"
 
 // 50% checker dither outside the face octagon. The octagon edge is
@@ -91,6 +92,7 @@ static void renderFrame() {
         case 2: drawMultidayFace   (canvas, 12, 32, mock.currentMultiday());    break;
         case 3: drawPowerFace      (canvas, 12, 32, mock.currentPower());       break;
         case 4: drawHourlyFace     (canvas, 12, 32, mock.currentHourly());      break;
+        case 5: drawBiosyncFace    (canvas, 12, 32, mock.currentBiosync());     break;
     }
 
     tft.drawRGBBitmap(LCD_OFFSET_X, LCD_OFFSET_Y, canvas.getBuffer(), CANVAS_W, CANVAS_H);
@@ -123,8 +125,8 @@ void loop() {
     bool back = digitalRead(BTN_BACK_PIN) == LOW;
     bool up   = digitalRead(BTN_UP_PIN)   == LOW;
     bool down = digitalRead(BTN_DOWN_PIN) == LOW;
-    if (up   && !prevUp)   { currentFaceIdx = (currentFaceIdx + 1) % 5;     needRedraw = true; }
-    if (down && !prevDown) { currentFaceIdx = (currentFaceIdx + 4) % 5;     needRedraw = true; }
+    if (up   && !prevUp)   { currentFaceIdx = (currentFaceIdx + 1) % 6;     needRedraw = true; }
+    if (down && !prevDown) { currentFaceIdx = (currentFaceIdx + 5) % 6;     needRedraw = true; }
     if (menu && !prevMenu) { mockTickCount++;                               needRedraw = true; }
     if (back && !prevBack) { mockTickCount += 6;                            needRedraw = true; }
     prevMenu = menu; prevBack = back; prevUp = up; prevDown = down;
@@ -155,7 +157,7 @@ void loop() {
 // re-runs on every wake and would clobber the persistent value. A fresh
 // MockState is fast-forwarded to mockTickCount on each refresh.
 RTC_DATA_ATTR uint32_t mockTickCount = 0;
-RTC_DATA_ATTR uint8_t  currentFaceIdx = 0;   // 0=stats, 1=goodmorning, 2=multiday, 3=power, 4=hourly
+RTC_DATA_ATTR uint8_t  currentFaceIdx = 0;   // 0=stats, 1=goodmorning, 2=multiday, 3=power, 4=hourly, 5=biosync
 
 const watchySettings kSettings = {
     /* cityID                */ "",
@@ -189,6 +191,7 @@ public:
             case 2: drawMultidayFace   (display, 12, 32, mock.currentMultiday());    break;
             case 3: drawPowerFace      (display, 12, 32, mock.currentPower());       break;
             case 4: drawHourlyFace     (display, 12, 32, mock.currentHourly());      break;
+            case 5: drawBiosyncFace    (display, 12, 32, mock.currentBiosync());     break;
         }
 
         // Each refresh advances animation by one tick so the once-per-minute
@@ -201,12 +204,12 @@ public:
         // SDK's menu navigation alone (MENU/BACK fall through to default).
         if (guiState == WATCHFACE_STATE) {
             if (digitalRead(UP_BTN_PIN) == LOW) {
-                currentFaceIdx = (currentFaceIdx + 1) % 5;
+                currentFaceIdx = (currentFaceIdx + 1) % 6;
                 showWatchFace(true);
                 return;
             }
             if (digitalRead(DOWN_BTN_PIN) == LOW) {
-                currentFaceIdx = (currentFaceIdx + 4) % 5;   // == −1 mod 5
+                currentFaceIdx = (currentFaceIdx + 5) % 6;   // == −1 mod 5
                 showWatchFace(true);
                 return;
             }

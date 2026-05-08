@@ -8,6 +8,7 @@
 #include "../faces/goodmorning.h"
 #include "../faces/power.h"
 #include "../faces/hourly.h"
+#include "../faces/biosync.h"
 
 // Mock state evolves over ticks (1 tick = ~1 real second).
 // Animation spec from brief:
@@ -22,6 +23,7 @@ public:
     GoodMorningData currentGoodMorning() const;
     PowerData currentPower() const;
     HourlyData currentHourly() const;
+    BiosyncData currentBiosync() const;
 
 private:
     uint32_t frame_ = 0;
@@ -229,6 +231,16 @@ inline HourlyData MockState::currentHourly() const {
     };
     constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
     return kScenes[(frame_ / kDwell) % 5];
+}
+
+// ── Biosync mock ───────────────────────────────────────────────────
+//
+// Static-only for now: the renderer ignores BiosyncData, so we just
+// hand back a default snapshot. Animation will be wired up later.
+inline BiosyncData MockState::currentBiosync() const {
+    BiosyncData d{};
+    d.sceneIndex = 0;
+    return d;
 }
 
 // Static snapshot matching the reference PNG exactly.
