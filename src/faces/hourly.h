@@ -201,6 +201,58 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
         }
     }
 
+    // 8. Animate the 44 minute squares around the perimeter (14 top +
+    //    14 bottom + 8 left + 8 right). Each cell is randomly toggled
+    //    between blank and 50% checker dither. The choice is hashed
+    //    from sceneIndex + cell index so it stays stable for a given
+    //    scene but varies as scenes cycle.
+    {
+        struct Sq { int16_t x, y, w, h; };
+        static constexpr Sq kSquares[44] = {
+            // Top strip (T0..T13) — rows 0..6, cols between vertical bars at
+            // 32, 39, 47, 55, 63, 71, 79, 87, 95, 103, 111, 119, 127, 135, 143
+            {  33,   0,  6,  7 }, {  40,   0,  7,  7 }, {  48,   0,  7,  7 }, {  56,   0,  7,  7 },
+            {  64,   0,  7,  7 }, {  72,   0,  7,  7 }, {  80,   0,  7,  7 }, {  88,   0,  7,  7 },
+            {  96,   0,  7,  7 }, { 104,   0,  7,  7 }, { 112,   0,  7,  7 }, { 120,   0,  7,  7 },
+            { 128,   0,  7,  7 }, { 136,   0,  7,  7 },
+            // Bottom strip (B0..B13) — rows 129..135, same vertical-bar grid.
+            {  32, 129,  7,  7 }, {  40, 129,  7,  7 }, {  48, 129,  7,  7 }, {  56, 129,  7,  7 },
+            {  64, 129,  7,  7 }, {  72, 129,  7,  7 }, {  80, 129,  7,  7 }, {  88, 129,  7,  7 },
+            {  96, 129,  7,  7 }, { 104, 129,  7,  7 }, { 112, 129,  7,  7 }, { 120, 129,  7,  7 },
+            { 128, 129,  7,  7 }, { 136, 129,  7,  7 },
+            // Left strip (L0..L7) — cols 0..7 (8 wide), rows between
+            // horizontal bars at 36, 44, 52, 60, 68, 76, 84, 92, 100.
+            // (Dial vertical bar sits at col 8 and is left untouched.)
+            {   0,  37,  8,  7 }, {   0,  45,  8,  7 }, {   0,  53,  8,  7 }, {   0,  61,  8,  7 },
+            {   0,  69,  8,  7 }, {   0,  77,  8,  7 }, {   0,  85,  8,  7 }, {   0,  93,  8,  7 },
+            // Right strip (R0..R7) — cols 168..175 (8 wide), same
+            // horizontal-bar grid. Dial bar at col 167 stays untouched.
+            { 168,  37,  8,  7 }, { 168,  45,  8,  7 }, { 168,  53,  8,  7 }, { 168,  61,  8,  7 },
+            { 168,  69,  8,  7 }, { 168,  77,  8,  7 }, { 168,  85,  8,  7 }, { 168,  93,  8,  7 },
+        };
+        const uint32_t seed = (uint32_t)data.sceneIndex + 1u;
+        for (int i = 0; i < 44; ++i) {
+            // murmur3-style finalizer for low-entropy seeds.
+            uint32_t h = seed * 0x9E3779B9u + ((uint32_t)i + 1u) * 0x6E146CF7u;
+            h ^= h >> 13;
+            h *= 0x85EBCA6Bu;
+            h ^= h >> 13;
+            h *= 0xC2B2AE35u;
+            h ^= h >> 16;
+            const bool dither = (h >> 16) & 1u;
+            const Sq& s = kSquares[i];
+            for (int r = 0; r < s.h; ++r)
+                for (int c = 0; c < s.w; ++c)
+                    display.drawPixel(ox + s.x + c, oy + s.y + r, WHITE);
+            if (dither) {
+                for (int r = 0; r < s.h; ++r)
+                    for (int c = 0; c < s.w; ++c)
+                        if (((s.x + c) + (s.y + r)) & 1)
+                            display.drawPixel(ox + s.x + c, oy + s.y + r, BLACK);
+            }
+        }
+    }
+
     // (Per-scene corner chevrons remain disabled — the static fish-scale
     // chevrons at the four corners stay intact. HourlyData::checkerVariant
     // remains in the struct for future re-enabling.)
