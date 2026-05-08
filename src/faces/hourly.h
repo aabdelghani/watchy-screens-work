@@ -7,6 +7,7 @@
 #include "frame.h"        // kFaceLeftInset / kFaceRightInset
 #include "hourly_static.h"
 #include "hourly_glyphs.h"
+#include "hourly_minute_map.h"  // kMinuteDot[60][2]
 #include "power.h"        // reuses watchy_power::drawSm/drawGfxChar/drawGfxStr/smLetter/dowName
 #include "../fonts/WatchyDigits10x15.h"
 #include "../fonts/WatchyDigits5x7.h"
@@ -88,7 +89,12 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
     clearRect(kTimeX,    kTimeY, kTimeW, kTimeH);
     clearRect(kDateX,    kDateY, kDateW, kDateH);
     clearRect(kDowX,     kDowY,  kDowW,  kDowH);
-    // Static dot above "60" is left intact (no clear / no redraw).
+    // Erase the static 6×6 diamond blob at face-rel (112..117, 9..14)
+    // — that's the active-minute indicator, redrawn dynamically below.
+    // Also erase the lone static pixel at (87, 8) that the reference
+    // baked above "60" — the moving blob is the only minute marker now.
+    clearRect(112, 9, 6, 6);
+    display.drawPixel(ox + 87, oy + 8, WHITE);
 
     // 3. BIG digits.
     auto bigRows = [](int digit) -> const uint8_t* {
@@ -163,11 +169,41 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
         }
     }
 
-    // (Dot indicator and per-scene corner chevrons are intentionally
-    // disabled for now. The static art keeps the reference dot above
-    // "60" and the static fish-scale chevrons at the four corners.
-    // HourlyData::dotX and HourlyData::checkerVariant remain in the
-    // struct for future re-enabling.)
+    // 7. Active-minute blob. 6×6 diamond shape, redrawn at the inner-
+    //    octagon position for the current minute. Position from
+    //    kMinuteDot[m] where m = clamp(sceneIndex, 0, 59); the lookup
+    //    walks the inner-octagon perimeter clockwise from top-center,
+    //    so minute 0 lands above "60", minute 15 near "15" on the right,
+    //    minute 30 above "30" at the bottom, minute 45 near "45" on
+    //    the left. (cx, cy) is the blob center.
+    //
+    //    Shape (6 rows × 6 cols, MSB-first packed into 1 byte/row):
+    //      ..##..    0x30
+    //      .####.    0x78
+    //      ######    0xFC
+    //      ######    0xFC
+    //      .####.    0x78
+    //      ..##..    0x30
+    {
+        int m = data.sceneIndex;
+        if (m < 0)  m = 0;
+        if (m > 59) m = 59;
+        const int cx = kMinuteDot[m][0];
+        const int cy = kMinuteDot[m][1];
+        static constexpr uint8_t kBlob[6] = {
+            0x30, 0x78, 0xFC, 0xFC, 0x78, 0x30,
+        };
+        for (int r = 0; r < 6; ++r) {
+            for (int c = 0; c < 6; ++c) {
+                if (kBlob[r] & (0x80 >> c))
+                    display.drawPixel(ox + cx - 3 + c, oy + cy - 3 + r, BLACK);
+            }
+        }
+    }
+
+    // (Per-scene corner chevrons remain disabled — the static fish-scale
+    // chevrons at the four corners stay intact. HourlyData::checkerVariant
+    // remains in the struct for future re-enabling.)
 }
 
 #endif // WATCHY_SCREENS_HOURLY_H

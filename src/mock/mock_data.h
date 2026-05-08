@@ -219,18 +219,17 @@ inline PowerData MockState::currentPower() const {
 // varies four fields (BIG sceneIndex, time, date, weekday). The
 // dotX / checkerVariant fields stay at reference values since the
 // renderer doesn't currently consume them. BIG values come from the
-// user-requested test set: 47, 56, 06, 08, 25.
+// user-requested test set: 47, 56, 06, 25.
 inline HourlyData MockState::currentHourly() const {
-    static const HourlyData kScenes[5] = {
+    static const HourlyData kScenes[4] = {
         // sceneIndex, hour, minute, day, month, dowIndex,    dotX, checkerVariant
         { 47, 10, 30,  4,  5, 6 /*SUN*/,                       87, 0 },  // 0
         { 56, 11, 15,  1,  3, 0 /*MON*/,                       87, 0 },  // 1
         {  6,  9, 45,  2,  8, 2 /*WED*/,                       87, 0 },  // 2
-        {  8, 14, 20,  3,  4, 4 /*FRI*/,                       87, 0 },  // 3
-        { 25, 16,  5,  5,  7, 5 /*SAT*/,                       87, 0 },  // 4
+        { 25, 16,  5,  5,  7, 5 /*SAT*/,                       87, 0 },  // 3
     };
     constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
-    return kScenes[(frame_ / kDwell) % 5];
+    return kScenes[(frame_ / kDwell) % 4];
 }
 
 // ── Biosync mock ───────────────────────────────────────────────────
