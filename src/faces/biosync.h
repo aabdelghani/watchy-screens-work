@@ -2,16 +2,21 @@
 #define WATCHY_SCREENS_BIOSYNC_H
 
 #include <stdint.h>
+#include <gfxfont.h>
 
 #include "biosync_static.h"
+#include "power.h"        // watchy_power::drawGfxChar
+#include "../fonts/WatchyDigits10x15.h"
 
 // BIOSYNC face. Reference: references/biosync.png. The 176×136 chrome
-// (title, perimeter dial, time, date, weekday, decorations) comes
-// straight from the static blit. The BIG center value is rendered on
-// top as a procedural 7-segment glyph so it can animate. Other dynamic
-// regions (time, date, weekday, dial dot) will follow in later passes.
+// (title, perimeter dial, date, weekday, decorations) comes from the
+// static blit. The BIG center value is a procedural 7-segment glyph,
+// the U-band below it is a dynamic black/dither progress fill, and
+// HH:MM under the BIG is rendered with WatchyDigits10x15.
 struct BiosyncData {
     int sceneIndex;   // 0..99 — drives the BIG center value
+    int hour;         // 0..23
+    int minute;       // 0..59
 };
 
 template <typename Display>
@@ -141,6 +146,31 @@ void drawBiosyncFace(Display& display, int ox, int oy, const BiosyncData& data) 
         const int t = kRVLen + kBotLen + (kUVertY1 - y);
         for (int x = kULeftX0; x <= kULeftX1; ++x)
             plotBand(x, y, t);
+    }
+
+    // ── HH:MM under the BIG digits ────────────────────────────────
+    // Static "10:13" lives at rows 98..112, spanning cols 50..98 (the
+    // '1' glyph carries a left-extending serif down to col 50). Clear
+    // that 49×15 slot to white, then redraw HH:MM with the same
+    // WatchyDigits10x15 + drawGfxChar advance loop HOURLY uses.
+    constexpr int kTimeX = 50, kTimeY = 98;
+    constexpr int kTimeW = 49, kTimeH = 15;
+    fillRect(kTimeX, kTimeY, kTimeW, kTimeH, WHITE);
+    {
+        using namespace watchy_power;
+        const int yB = oy + kTimeY + 14;
+        const char h1 = '0' + (data.hour   / 10) % 10;
+        const char h2 = '0' + (data.hour   % 10);
+        const char m1 = '0' + (data.minute / 10) % 10;
+        const char m2 = '0' + (data.minute % 10);
+        int x = ox + kTimeX;
+        x += drawGfxChar(display, WatchyDigits10x15, x, yB, h1, BLACK);
+        x += drawGfxChar(display, WatchyDigits10x15, x, yB, h2, BLACK);
+        x += 2;
+        x += drawGfxChar(display, WatchyDigits10x15, x, yB, ':', BLACK);
+        x += 2;
+        x += drawGfxChar(display, WatchyDigits10x15, x, yB, m1, BLACK);
+        drawGfxChar(display, WatchyDigits10x15, x, yB, m2, BLACK);
     }
 }
 

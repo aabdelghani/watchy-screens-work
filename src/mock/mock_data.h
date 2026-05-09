@@ -234,14 +234,22 @@ inline HourlyData MockState::currentHourly() const {
 
 // ── Biosync mock ───────────────────────────────────────────────────
 //
-// Cycles the BIG center value through 20 → 32 → 64, switching every
-// kDwell ticks. Rendered as a procedural 7-segment glyph in
-// drawBiosyncFace.
+// Three scenes, switching every kDwell ticks. BIG value and HH:MM
+// rotate together off the same scene index so the pairings are
+// stable: 20→11:15, 32→05:20, 64→13:30.
 inline BiosyncData MockState::currentBiosync() const {
-    static constexpr int kBigValues[3] = { 20, 32, 64 };
+    struct Scene { int big, hour, minute; };
+    static constexpr Scene kScenes[3] = {
+        { 20, 11, 15 },
+        { 32,  5, 20 },
+        { 64, 13, 30 },
+    };
     constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
+    const Scene& s = kScenes[(frame_ / kDwell) % 3];
     BiosyncData d{};
-    d.sceneIndex = kBigValues[(frame_ / kDwell) % 3];
+    d.sceneIndex = s.big;
+    d.hour       = s.hour;
+    d.minute     = s.minute;
     return d;
 }
 
