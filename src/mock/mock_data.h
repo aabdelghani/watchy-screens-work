@@ -234,11 +234,14 @@ inline HourlyData MockState::currentHourly() const {
 
 // ── Biosync mock ───────────────────────────────────────────────────
 //
-// Static-only for now: the renderer ignores BiosyncData, so we just
-// hand back a default snapshot. Animation will be wired up later.
+// Cycles the BIG center value through 20 → 32 → 64, switching every
+// kDwell ticks. Rendered as a procedural 7-segment glyph in
+// drawBiosyncFace.
 inline BiosyncData MockState::currentBiosync() const {
+    static constexpr int kBigValues[3] = { 20, 32, 64 };
+    constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
     BiosyncData d{};
-    d.sceneIndex = 0;
+    d.sceneIndex = kBigValues[(frame_ / kDwell) % 3];
     return d;
 }
 
