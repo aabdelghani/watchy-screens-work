@@ -225,7 +225,7 @@ inline HourlyData MockState::currentHourly() const {
         // sceneIndex, hour, minute, day, month, dowIndex,    dotX, checkerVariant
         { 47, 10, 30,  4,  5, 6 /*SUN*/,                       87, 0 },  // 0
         { 56, 11, 15,  1,  3, 0 /*MON*/,                       87, 0 },  // 1
-        {  6,  9, 45,  2,  8, 2 /*WED*/,                       87, 0 },  // 2
+        {  6,  5, 16,  2,  8, 2 /*WED*/,                       87, 0 },  // 2
         { 25, 16,  5,  5,  7, 5 /*SAT*/,                       87, 0 },  // 3
     };
     constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
