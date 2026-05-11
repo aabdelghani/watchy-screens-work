@@ -2,6 +2,7 @@
 #define WATCHY_SCREENS_BIOSYNC_H
 
 #include <stdint.h>
+#include <stdio.h>
 #include <gfxfont.h>
 
 #include "biosync_static.h"
@@ -149,28 +150,22 @@ void drawBiosyncFace(Display& display, int ox, int oy, const BiosyncData& data) 
     }
 
     // ── HH:MM under the BIG digits ────────────────────────────────
-    // Static "10:13" lives at rows 98..112, spanning cols 50..98 (the
-    // '1' glyph carries a left-extending serif down to col 50). Clear
-    // that 49×15 slot to white, then redraw HH:MM with the same
-    // WatchyDigits10x15 + drawGfxChar advance loop HOURLY uses.
-    constexpr int kTimeX = 50, kTimeY = 98;
-    constexpr int kTimeW = 49, kTimeH = 15;
+    // Reference layout: time at cols 52..98, date at cols 105..124 →
+    // 6-px gap. Date is left as-is from the static blit (not dynamic
+    // on BIOSYNC). Clear cols 52..98 (W=47) so the static "10:13"
+    // pixels go white, then redraw HH:MM with setFont+print (matches
+    // STATS / HOURLY anchor and colon spacing exactly).
+    constexpr int kTimeX = 52, kTimeY = 98;
+    constexpr int kTimeW = 47, kTimeH = 15;
     fillRect(kTimeX, kTimeY, kTimeW, kTimeH, WHITE);
     {
-        using namespace watchy_power;
-        const int yB = oy + kTimeY + 14;
-        const char h1 = '0' + (data.hour   / 10) % 10;
-        const char h2 = '0' + (data.hour   % 10);
-        const char m1 = '0' + (data.minute / 10) % 10;
-        const char m2 = '0' + (data.minute % 10);
-        int x = ox + kTimeX;
-        x += drawGfxChar(display, WatchyDigits10x15, x, yB, h1, BLACK);
-        x += drawGfxChar(display, WatchyDigits10x15, x, yB, h2, BLACK);
-        x += 2;
-        x += drawGfxChar(display, WatchyDigits10x15, x, yB, ':', BLACK);
-        x += 2;
-        x += drawGfxChar(display, WatchyDigits10x15, x, yB, m1, BLACK);
-        drawGfxChar(display, WatchyDigits10x15, x, yB, m2, BLACK);
+        char buf[6];
+        snprintf(buf, sizeof(buf), "%02d:%02d", data.hour, data.minute);
+        display.setFont(&WatchyDigits10x15);
+        display.setTextColor(BLACK);
+        display.setCursor(ox + kTimeX, oy + kTimeY + 14);
+        display.print(buf);
+        display.setFont(nullptr);
     }
 }
 

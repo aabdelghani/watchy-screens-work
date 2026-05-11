@@ -2,6 +2,7 @@
 #define WATCHY_SCREENS_HOURLY_H
 
 #include <stdint.h>
+#include <stdio.h>
 #include <gfxfont.h>
 
 #include "frame.h"        // kFaceLeftInset / kFaceRightInset
@@ -49,12 +50,12 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
     constexpr int kBigW      = 17;
     constexpr int kBigH      = 32;
 
-    // Time HH:MM, 10×15. Anchored at x=47 — 5 px left of the original
-    // reference position so the time block reads with more breathing
-    // room on the left and even all-wide pairings like "08:08" stay
-    // well clear of the date column at x=105.
-    constexpr int kTimeX = 47, kTimeY = 101;
-    constexpr int kTimeW = 56, kTimeH = 15;
+    // Time HH:MM, 10×15. Anchored at x=52 to match the reference PNG
+    // exactly — last digit ends at col 98, date starts at col 105
+    // (a 6-px gap). Clear width 53 covers cols 52..104, stopping
+    // 1 px short of the date anchor.
+    constexpr int kTimeX = 52, kTimeY = 101;
+    constexpr int kTimeW = 53, kTimeH = 15;
 
     // Date D/M and weekday SUN, stacked on the right. Anchored at
     // x=105 (was 106) so the leftmost static-art pixel of '4' / 'S'
@@ -127,24 +128,16 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
     drawBig(n / 10, kBigLeftX);
     drawBig(n % 10, kBigRightX);
 
-    // 4. Time HH:MM via WatchyDigits10x15. Each digit advances by its
-    //    own xAdvance (so wide pairs like "30", "20", "08" don't
-    //    overlap), with a 2-px padding around the colon so it doesn't
-    //    read as flush against the digits.
+    // 4. Time HH:MM via WatchyDigits10x15, using the same
+    //    setFont+print pattern STATS uses so the colon spacing matches.
     {
-        const int yB = oy + kTimeY + 14;
-        char h1 = '0' + (data.hour   / 10) % 10;
-        char h2 = '0' + (data.hour   % 10);
-        char m1 = '0' + (data.minute / 10) % 10;
-        char m2 = '0' + (data.minute % 10);
-        int x = ox + kTimeX;
-        x += drawGfxChar(display, WatchyDigits10x15, x, yB, h1, BLACK);
-        x += drawGfxChar(display, WatchyDigits10x15, x, yB, h2, BLACK);
-        x += 2;
-        x += drawGfxChar(display, WatchyDigits10x15, x, yB, ':', BLACK);
-        x += 2;
-        x += drawGfxChar(display, WatchyDigits10x15, x, yB, m1, BLACK);
-        drawGfxChar(display, WatchyDigits10x15, x, yB, m2, BLACK);
+        char buf[6];
+        snprintf(buf, sizeof(buf), "%02d:%02d", data.hour, data.minute);
+        display.setFont(&WatchyDigits10x15);
+        display.setTextColor(BLACK);
+        display.setCursor(ox + kTimeX, oy + kTimeY + 14);
+        display.print(buf);
+        display.setFont(nullptr);
     }
 
     // 5. Date "D/M" at (kDateX, kDateY). Single-digit day/month per

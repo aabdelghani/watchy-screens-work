@@ -215,37 +215,44 @@ inline PowerData MockState::currentPower() const {
 
 // ── Hourly mock ────────────────────────────────────────────────────
 //
-// 5 hand-picked scenes that rotate every kDwell ticks. Each scene
-// varies four fields (BIG sceneIndex, time, date, weekday). The
-// dotX / checkerVariant fields stay at reference values since the
-// renderer doesn't currently consume them. BIG values come from the
-// user-requested test set: 47, 56, 06, 25.
+// 7 hand-picked scenes that rotate every kDwell ticks. Times mirror
+// the STATS face exactly (10:13, 11:30, 01:30, 03:13, 13:13, 10:01,
+// 00:30) so the three time-displaying faces stay in sync. BIG values
+// come from the user-requested test pool {47, 56, 06, 25}, cycled.
 inline HourlyData MockState::currentHourly() const {
-    static const HourlyData kScenes[4] = {
+    static const HourlyData kScenes[7] = {
         // sceneIndex, hour, minute, day, month, dowIndex,    dotX, checkerVariant
-        { 47, 10, 30,  4,  5, 6 /*SUN*/,                       87, 0 },  // 0
-        { 56, 11, 15,  1,  3, 0 /*MON*/,                       87, 0 },  // 1
-        {  6,  5, 16,  2,  8, 2 /*WED*/,                       87, 0 },  // 2
-        { 25, 16,  5,  5,  7, 5 /*SAT*/,                       87, 0 },  // 3
+        { 47, 10, 13,  4,  5, 6 /*SUN*/,                       87, 0 },  // 0
+        { 56, 11, 30,  1,  3, 0 /*MON*/,                       87, 0 },  // 1
+        {  6,  1, 30,  2,  8, 2 /*WED*/,                       87, 0 },  // 2
+        { 25,  3, 13,  5,  7, 5 /*SAT*/,                       87, 0 },  // 3
+        { 47, 13, 13,  7,  5, 3 /*THU*/,                       87, 0 },  // 4
+        { 56, 10,  1, 12,  9, 1 /*TUE*/,                       87, 0 },  // 5
+        {  6,  0, 30, 20, 11, 4 /*FRI*/,                       87, 0 },  // 6
     };
     constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
-    return kScenes[(frame_ / kDwell) % 4];
+    return kScenes[(frame_ / kDwell) % 7];
 }
 
 // ── Biosync mock ───────────────────────────────────────────────────
 //
-// Three scenes, switching every kDwell ticks. BIG value and HH:MM
-// rotate together off the same scene index so the pairings are
-// stable: 20→11:15, 32→05:20, 64→13:30.
+// 7 scenes, switching every kDwell ticks. Times mirror STATS exactly
+// (10:13, 11:30, 01:30, 03:13, 13:13, 10:01, 00:30) so the three
+// time-displaying faces stay in sync. BIG values come from the test
+// pool {20, 32, 64}, cycled.
 inline BiosyncData MockState::currentBiosync() const {
     struct Scene { int big, hour, minute; };
-    static constexpr Scene kScenes[3] = {
-        { 20, 11, 15 },
-        { 32,  5, 20 },
-        { 64, 13, 30 },
+    static constexpr Scene kScenes[7] = {
+        { 20, 10, 13 },
+        { 32, 11, 30 },
+        { 64,  1, 30 },
+        { 20,  3, 13 },
+        { 32, 13, 13 },
+        { 64, 10,  1 },
+        { 20,  0, 30 },
     };
     constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
-    const Scene& s = kScenes[(frame_ / kDwell) % 3];
+    const Scene& s = kScenes[(frame_ / kDwell) % 7];
     BiosyncData d{};
     d.sceneIndex = s.big;
     d.hour       = s.hour;
