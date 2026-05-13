@@ -220,39 +220,33 @@ inline PowerData MockState::currentPower() const {
 // 00:30) so the three time-displaying faces stay in sync. BIG values
 // come from the user-requested test pool {47, 56, 06, 25}, cycled.
 inline HourlyData MockState::currentHourly() const {
-    static const HourlyData kScenes[7] = {
+    // 3 scenes whose HH:MM digits collectively exercise every glyph
+    // 0..9 in the new WatchyDigitsRef10x15 font, all valid clock
+    // times: 12:34 → {1,2,3,4}, 06:57 → {0,6,5,7}, 09:18 → {0,9,1,8}.
+    static const HourlyData kScenes[3] = {
         // sceneIndex, hour, minute, day, month, dowIndex,    dotX, checkerVariant
-        { 47, 10, 13,  4,  5, 6 /*SUN*/,                       87, 0 },  // 0
-        { 56, 11, 30,  1,  3, 0 /*MON*/,                       87, 0 },  // 1
-        {  6,  1, 30,  2,  8, 2 /*WED*/,                       87, 0 },  // 2
-        { 25,  3, 13,  5,  7, 5 /*SAT*/,                       87, 0 },  // 3
-        { 47, 13, 13,  7,  5, 3 /*THU*/,                       87, 0 },  // 4
-        { 56, 10,  1, 12,  9, 1 /*TUE*/,                       87, 0 },  // 5
-        {  6,  0, 30, 20, 11, 4 /*FRI*/,                       87, 0 },  // 6
+        { 47, 12, 34,  4,  5, 6 /*SUN*/,                       87, 0 },  // 12:34
+        { 56,  6, 57,  1,  3, 0 /*MON*/,                       87, 0 },  // 06:57
+        {  6,  9, 18,  2,  8, 2 /*WED*/,                       87, 0 },  // 09:18
     };
     constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
-    return kScenes[(frame_ / kDwell) % 7];
+    return kScenes[(frame_ / kDwell) % 3];
 }
 
 // ── Biosync mock ───────────────────────────────────────────────────
 //
-// 7 scenes, switching every kDwell ticks. Times mirror STATS exactly
-// (10:13, 11:30, 01:30, 03:13, 13:13, 10:01, 00:30) so the three
-// time-displaying faces stay in sync. BIG values come from the test
-// pool {20, 32, 64}, cycled.
+// 3 scenes whose HH:MM digits collectively exercise every glyph 0..9
+// in the new WatchyDigitsRef10x15 font, all valid clock times
+// (12:34, 06:57, 09:18). BIG values from the test pool {20, 32, 64}.
 inline BiosyncData MockState::currentBiosync() const {
     struct Scene { int big, hour, minute; };
-    static constexpr Scene kScenes[7] = {
-        { 20, 10, 13 },
-        { 32, 11, 30 },
-        { 64,  1, 30 },
-        { 20,  3, 13 },
-        { 32, 13, 13 },
-        { 64, 10,  1 },
-        { 20,  0, 30 },
+    static constexpr Scene kScenes[3] = {
+        { 20, 12, 34 },
+        { 32,  6, 57 },
+        { 64,  9, 18 },
     };
     constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
-    const Scene& s = kScenes[(frame_ / kDwell) % 7];
+    const Scene& s = kScenes[(frame_ / kDwell) % 3];
     BiosyncData d{};
     d.sceneIndex = s.big;
     d.hour       = s.hour;

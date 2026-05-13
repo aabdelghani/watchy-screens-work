@@ -10,7 +10,7 @@
 #include "hourly_glyphs.h"
 #include "hourly_minute_map.h"  // kMinuteDot[60][2]
 #include "power.h"        // reuses watchy_power::drawSm/drawGfxChar/drawGfxStr/smLetter/dowName
-#include "../fonts/WatchyDigits10x15.h"
+#include "../fonts/WatchyDigitsRef10x15.h"
 #include "../fonts/WatchyDigits5x7.h"
 
 // HOURLY (PERFORMANCE) face. Reference: references/hourly.png. The
@@ -133,7 +133,7 @@ void drawHourlyFace(Display& display, int ox, int oy, const HourlyData& data) {
     {
         char buf[6];
         snprintf(buf, sizeof(buf), "%02d:%02d", data.hour, data.minute);
-        display.setFont(&WatchyDigits10x15);
+        display.setFont(&WatchyDigitsRef10x15);
         display.setTextColor(BLACK);
         display.setCursor(ox + kTimeX, oy + kTimeY + 14);
         display.print(buf);

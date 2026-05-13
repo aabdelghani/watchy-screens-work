@@ -7,7 +7,7 @@
 
 #include "biosync_static.h"
 #include "power.h"        // watchy_power::drawGfxChar
-#include "../fonts/WatchyDigits10x15.h"
+#include "../fonts/WatchyDigitsRef10x15.h"
 
 // BIOSYNC face. Reference: references/biosync.png. The 176×136 chrome
 // (title, perimeter dial, date, weekday, decorations) comes from the
@@ -161,7 +161,7 @@ void drawBiosyncFace(Display& display, int ox, int oy, const BiosyncData& data) 
     {
         char buf[6];
         snprintf(buf, sizeof(buf), "%02d:%02d", data.hour, data.minute);
-        display.setFont(&WatchyDigits10x15);
+        display.setFont(&WatchyDigitsRef10x15);
         display.setTextColor(BLACK);
         display.setCursor(ox + kTimeX, oy + kTimeY + 14);
         display.print(buf);
