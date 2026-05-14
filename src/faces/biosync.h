@@ -185,31 +185,34 @@ void drawBiosyncFace(Display& display, int ox, int oy, const BiosyncData& data) 
     // kDialPos[i] is the (x, y) top-left of the 6×6 marker diamond
     // for hour (i+1). Positions are inset just inside the chrome
     // ring, adjacent to each digit.
+    // Each diamond top-left is placed adjacent to its hour's chrome cell,
+    // inside the inner face area. Top/bottom edge: y=16/113; left/right
+    // edge: x=17/152. Chamfer cells use a diagonal inset.
     static constexpr int kDialPos[24][2] = {
-        /*  1 */ { 116,  16 },
-        /*  2 */ { 132,  16 },
-        /*  3 */ { 145,  25 },
-        /*  4 */ { 144,  35 },
-        /*  5 */ { 152,  40 },
-        /*  6 */ { 152,  56 },
-        /*  7 */ { 152,  72 },
-        /*  8 */ { 144,  92 },
-        /*  9 */ { 138, 103 },
-        /* 10 */ { 130, 113 },
-        /* 11 */ { 113, 113 },
-        /* 12 */ {  95, 113 },
-        /* 13 */ {  77, 113 },
-        /* 14 */ {  60, 113 },
-        /* 15 */ {  31, 103 },
-        /* 16 */ {  25,  92 },
-        /* 17 */ {  17,  72 },
-        /* 18 */ {  17,  56 },
-        /* 19 */ {  17,  40 },
-        /* 20 */ {  24,  35 },
-        /* 21 */ {  24,  25 },
-        /* 22 */ {  35,  16 },
-        /* 23 */ {  53,  16 },
-        /* 24 */ {  83,  16 },
+        /*  1 */ {  95,  16 },  // top, cell cols 89..108
+        /*  2 */ { 116,  16 },  // top, cell cols 109..130 (inverted)
+        /*  3 */ { 138,  16 },  // top, cell cols 131..152
+        /*  4 */ { 144,  24 },  // TR chamfer diamond
+        /*  5 */ { 152,  27 },  // right, cell rows 14..46
+        /*  6 */ { 152,  54 },  // right, cell rows 48..67
+        /*  7 */ { 152,  75 },  // right, cell rows 68..88 (inverted)
+        /*  8 */ { 152, 100 },  // right, cell rows 89..118 (inverted)
+        /*  9 */ { 144, 105 },  // BR chamfer diamond
+        /* 10 */ { 138, 113 },  // bottom, cell cols 131..152
+        /* 11 */ { 116, 113 },  // bottom, cell cols 109..130 (inverted)
+        /* 12 */ {  95, 113 },  // bottom, cell cols 89..108
+        /* 13 */ {  74, 113 },  // bottom, cell cols 68..87
+        /* 14 */ {  53, 113 },  // bottom, cell cols 47..66
+        /* 15 */ {  32, 113 },  // bottom, cell cols 24..46 (inverted)
+        /* 16 */ {  25, 105 },  // BL chamfer diamond
+        /* 17 */ {  17, 100 },  // left, cell rows 89..118
+        /* 18 */ {  17,  75 },  // left, cell rows 68..88 (inverted)
+        /* 19 */ {  17,  54 },  // left, cell rows 48..67 (inverted)
+        /* 20 */ {  17,  27 },  // left, cell rows 14..46
+        /* 21 */ {  25,  24 },  // TL chamfer diamond
+        /* 22 */ {  32,  16 },  // top, cell cols 24..46 (inverted)
+        /* 23 */ {  53,  16 },  // top, cell cols 47..66
+        /* 24 */ {  74,  16 },  // top, cell cols 68..87
     };
     static constexpr uint8_t kDiamond[6] = {
         0b00110000,
