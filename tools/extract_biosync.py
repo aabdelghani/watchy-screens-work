@@ -10,18 +10,22 @@ from PIL import Image
 SRC = "/home/q/1Projects/Watchy/watchy-screens/references/biosync.png"
 DST = "/home/q/1Projects/Watchy/watchy-screens/src/faces/biosync_static.h"
 
-im = Image.open(SRC).convert("L")
+im = Image.open(SRC).convert("RGBA")
 W, H = im.size
 assert (W, H) == (176, 136), f"Unexpected size {W}x{H}"
 
 px = im.load()
 stride = W // 8  # 22
 
+# Alpha-aware extraction: source has hidden black pixels under alpha=0 in
+# the chamfered corners. Only treat a pixel as ink if it's both visible
+# (alpha >= 128) AND dark (mean RGB < 128).
 rows = []
 for y in range(H):
     row = bytearray(stride)
     for x in range(W):
-        if px[x, y] < 128:  # black
+        r, g, b, a = px[x, y]
+        if a >= 128 and (r + g + b) / 3 < 128:
             row[x // 8] |= 0x80 >> (x % 8)
     rows.append(bytes(row))
 
