@@ -248,9 +248,14 @@ inline BiosyncData MockState::currentBiosync() const {
     constexpr uint32_t kDwell = 4;  // ticks per scene (~4 s)
     const Scene& s = kScenes[(frame_ / kDwell) % 3];
     BiosyncData d{};
-    d.sceneIndex = s.big;
-    d.hour       = s.hour;
-    d.minute     = s.minute;
+    d.sceneIndex  = s.big;
+    d.hour        = s.hour;
+    d.minute      = s.minute;
+    // Hour-marker diamond cycles through a small set of dial positions
+    // (hours 2, 3, 6, 19), one step per tick (~1 s).
+    // markerIndex stores hour-1 since kDialPos[] is 0-indexed.
+    static constexpr int kMarkerHours[4] = { 2, 3, 6, 19 };
+    d.markerIndex = kMarkerHours[frame_ % 4] - 1;
     return d;
 }
 

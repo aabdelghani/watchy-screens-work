@@ -15,9 +15,10 @@
 // the U-band below it is a dynamic black/dither progress fill, and
 // HH:MM under the BIG is rendered with WatchyDigits10x15.
 struct BiosyncData {
-    int sceneIndex;   // 0..99 — drives the BIG center value
-    int hour;         // 0..23
-    int minute;       // 0..59
+    int sceneIndex;    // 0..99 — drives the BIG center value
+    int hour;          // 0..23
+    int minute;        // 0..59
+    int markerIndex;   // 0..23 — hour-marker diamond position around the 24 dial digits
 };
 
 template <typename Display>
@@ -167,6 +168,65 @@ void drawBiosyncFace(Display& display, int ox, int oy, const BiosyncData& data) 
         display.print(buf);
         display.setFont(nullptr);
     }
+
+    // ── Hour-marker diamond ───────────────────────────────────────
+    // 24 dial digits arranged around the octagonal perimeter:
+    //   top edge:     22, 23, 24, 1, 2     (TL corner 22, then L→R)
+    //   TR corner:    3
+    //   TR chamfer:   4
+    //   right edge:   5, 6, 7
+    //   BR chamfer:   8
+    //   BR corner:    9
+    //   bottom edge:  10, 11, 12, 13, 14   (R→L from BR)
+    //   BL corner:    15
+    //   BL chamfer:   16
+    //   left edge:    17, 18, 19, 20       (B→T)
+    //   TL chamfer:   21
+    // kDialPos[i] is the (x, y) top-left of the 6×6 marker diamond
+    // for hour (i+1). Positions are inset just inside the chrome
+    // ring, adjacent to each digit.
+    static constexpr int kDialPos[24][2] = {
+        /*  1 */ { 116,  16 },
+        /*  2 */ { 132,  16 },
+        /*  3 */ { 145,  25 },
+        /*  4 */ { 144,  35 },
+        /*  5 */ { 152,  40 },
+        /*  6 */ { 152,  56 },
+        /*  7 */ { 152,  72 },
+        /*  8 */ { 144,  92 },
+        /*  9 */ { 138, 103 },
+        /* 10 */ { 130, 113 },
+        /* 11 */ { 113, 113 },
+        /* 12 */ {  95, 113 },
+        /* 13 */ {  77, 113 },
+        /* 14 */ {  60, 113 },
+        /* 15 */ {  31, 103 },
+        /* 16 */ {  25,  92 },
+        /* 17 */ {  17,  72 },
+        /* 18 */ {  17,  56 },
+        /* 19 */ {  17,  40 },
+        /* 20 */ {  24,  35 },
+        /* 21 */ {  24,  25 },
+        /* 22 */ {  35,  16 },
+        /* 23 */ {  53,  16 },
+        /* 24 */ {  83,  16 },
+    };
+    static constexpr uint8_t kDiamond[6] = {
+        0b00110000,
+        0b01111000,
+        0b11111100,
+        0b11111100,
+        0b01111000,
+        0b00110000,
+    };
+    int mi = data.markerIndex;
+    if (mi < 0) mi = 0;
+    if (mi > 23) mi = 23;
+    const int dx = kDialPos[mi][0], dy = kDialPos[mi][1];
+    for (int r = 0; r < 6; ++r)
+        for (int c = 0; c < 6; ++c)
+            if (kDiamond[r] & (0x80 >> c))
+                display.drawPixel(ox + dx + c, oy + dy + r, BLACK);
 }
 
 #endif // WATCHY_SCREENS_BIOSYNC_H
