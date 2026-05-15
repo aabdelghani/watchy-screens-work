@@ -23,6 +23,7 @@ struct BiosyncData {
     bool highlight2;    // true → hour 2 cell shown in hi (black-bg) state
     bool highlight3;    // true → hour 3 cell shown in hi (black-bg) state
     bool highlight4;    // true → hour 4 cell shown in hi (black-bg) state
+    bool highlight5;    // true → hour 5 cell shown in hi (black-bg) state
 };
 
 template <typename Display>
@@ -299,6 +300,49 @@ void drawBiosyncFace(Display& display, int ox, int oy, const BiosyncData& data) 
                 if (hi == lo) continue;
                 const bool on = kHighlight4 ? hi : lo;
                 display.drawPixel(ox + kHour4X + c, oy + kHour4Y + r,
+                                  on ? BLACK : WHITE);
+            }
+        }
+
+        // Hour 5 — right-edge top cell, 18×23 at (x=158, y=24).
+        // CC-masked; hi from ODD, lo from EVEN.
+        const bool kHighlight5 = data.highlight5;
+        static const uint8_t kHour5HiBits[23][3] = {
+            { 0x00, 0x40, 0x00 }, { 0x00, 0xC0, 0x00 },
+            { 0x01, 0xE0, 0x00 }, { 0x03, 0xE0, 0x00 },
+            { 0x07, 0xF0, 0x00 }, { 0x0F, 0xF8, 0x00 },
+            { 0x1F, 0xF8, 0x00 }, { 0x3F, 0xFC, 0x00 },
+            { 0x7F, 0xFE, 0x00 }, { 0xFF, 0xFE, 0x00 },
+            { 0x7F, 0xFF, 0x00 }, { 0x3E, 0x1F, 0x80 },
+            { 0x1E, 0xFF, 0x80 }, { 0x0E, 0x3F, 0xC0 },
+            { 0x0F, 0xDF, 0xC0 }, { 0x0F, 0xDF, 0xC0 },
+            { 0x0E, 0xDF, 0xC0 }, { 0x0F, 0x3F, 0xC0 },
+            { 0x0F, 0xFF, 0xC0 }, { 0x0F, 0xFF, 0xC0 },
+            { 0x0F, 0xFF, 0xC0 }, { 0x0F, 0xFF, 0xC0 },
+            { 0x0F, 0xFF, 0xC0 },
+        };
+        static const uint8_t kHour5LoBits[23][3] = {
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x01, 0xE0, 0x00 },
+            { 0x01, 0x00, 0x00 }, { 0x01, 0xC0, 0x00 },
+            { 0x00, 0x20, 0x00 }, { 0x00, 0x20, 0x00 },
+            { 0x01, 0x20, 0x00 }, { 0x00, 0xC0, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 },
+        };
+        constexpr int kHour5X = 158, kHour5Y = 24, kHour5W = 18, kHour5H = 23;
+        for (int r = 0; r < kHour5H; ++r) {
+            for (int c = 0; c < kHour5W; ++c) {
+                const bool hi = kHour5HiBits[r][c >> 3] & (0x80 >> (c & 7));
+                const bool lo = kHour5LoBits[r][c >> 3] & (0x80 >> (c & 7));
+                if (hi == lo) continue;
+                const bool on = kHighlight5 ? hi : lo;
+                display.drawPixel(ox + kHour5X + c, oy + kHour5Y + r,
                                   on ? BLACK : WHITE);
             }
         }

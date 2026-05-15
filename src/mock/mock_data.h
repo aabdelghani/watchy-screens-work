@@ -256,12 +256,13 @@ inline BiosyncData MockState::currentBiosync() const {
     // markerIndex stores hour-1 since kDialPos[] is 0-indexed.
     static constexpr int kMarkerHours[4] = { 2, 3, 6, 19 };
     d.markerIndex = kMarkerHours[frame_ % 4] - 1;
-    // Each tick rotate the highlight through hours 1, 2, 3, 4.
-    const uint32_t phase = frame_ % 4;
+    // Each tick rotate the highlight through hours 1..5.
+    const uint32_t phase = frame_ % 5;
     d.highlight1 = (phase == 0);
     d.highlight2 = (phase == 1);
     d.highlight3 = (phase == 2);
     d.highlight4 = (phase == 3);
+    d.highlight5 = (phase == 4);
     return d;
 }
 
