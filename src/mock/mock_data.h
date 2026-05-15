@@ -256,13 +256,32 @@ inline BiosyncData MockState::currentBiosync() const {
     // markerIndex stores hour-1 since kDialPos[] is 0-indexed.
     static constexpr int kMarkerHours[4] = { 2, 3, 6, 19 };
     d.markerIndex = kMarkerHours[frame_ % 4] - 1;
-    // Each tick rotate the highlight through hours 1..5.
-    const uint32_t phase = frame_ % 5;
-    d.highlight1 = (phase == 0);
-    d.highlight2 = (phase == 1);
-    d.highlight3 = (phase == 2);
-    d.highlight4 = (phase == 3);
-    d.highlight5 = (phase == 4);
+    // Each tick rotate the highlight through all 24 hours.
+    const int active = (int)(frame_ % 24) + 1;
+    d.highlight1  = (active == 1);
+    d.highlight2  = (active == 2);
+    d.highlight3  = (active == 3);
+    d.highlight4  = (active == 4);
+    d.highlight5  = (active == 5);
+    d.highlight6  = (active == 6);
+    d.highlight7  = (active == 7);
+    d.highlight8  = (active == 8);
+    d.highlight9  = (active == 9);
+    d.highlight10 = (active == 10);
+    d.highlight11 = (active == 11);
+    d.highlight12 = (active == 12);
+    d.highlight13 = (active == 13);
+    d.highlight14 = (active == 14);
+    d.highlight15 = (active == 15);
+    d.highlight16 = (active == 16);
+    d.highlight17 = (active == 17);
+    d.highlight18 = (active == 18);
+    d.highlight19 = (active == 19);
+    d.highlight20 = (active == 20);
+    d.highlight21 = (active == 21);
+    d.highlight22 = (active == 22);
+    d.highlight23 = (active == 23);
+    d.highlight24 = (active == 24);
     return d;
 }
 
