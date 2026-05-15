@@ -15,10 +15,14 @@
 // the U-band below it is a dynamic black/dither progress fill, and
 // HH:MM under the BIG is rendered with WatchyDigits10x15.
 struct BiosyncData {
-    int sceneIndex;    // 0..99 — drives the BIG center value
-    int hour;          // 0..23
-    int minute;        // 0..59
-    int markerIndex;   // 0..23 — hour-marker diamond position around the 24 dial digits
+    int sceneIndex;     // 0..99 — drives the BIG center value
+    int hour;           // 0..23
+    int minute;         // 0..59
+    int markerIndex;    // 0..23 — hour-marker diamond position around the 24 dial digits
+    bool highlight1;    // true → hour 1 cell shown in hi (black-bg) state
+    bool highlight2;    // true → hour 2 cell shown in hi (black-bg) state
+    bool highlight3;    // true → hour 3 cell shown in hi (black-bg) state
+    bool highlight4;    // true → hour 4 cell shown in hi (black-bg) state
 };
 
 template <typename Display>
@@ -176,8 +180,8 @@ void drawBiosyncFace(Display& display, int ox, int oy, const BiosyncData& data) 
     // and BIOSYNC even .png. Flip the kHighlightN bools to toggle a
     // cell's state without touching geometry.
     {
-        constexpr bool kHighlight1 = true;
-        constexpr bool kHighlight2 = false;
+        const bool kHighlight1 = data.highlight1;
+        const bool kHighlight2 = data.highlight2;
 
         static const uint8_t kHour1HiBits[14][3] = {
             { 0xFF, 0xFF, 0xF0 }, { 0xFF, 0xFF, 0xF0 }, { 0xFF, 0xFF, 0xF0 }, { 0xFF, 0xFF, 0xF0 },
@@ -216,6 +220,88 @@ void drawBiosyncFace(Display& display, int ox, int oy, const BiosyncData& data) 
 
         overlay20x14(89,  0, kHighlight1 ? kHour1HiBits : kHour1LoBits);
         overlay20x14(110, 0, kHighlight2 ? kHour2HiBits : kHour2LoBits);
+
+        // Hour 3 — TR corner cell, 26×17 at (x=131, y=0). Uses
+        // skip-equal logic: only modify pixels where hi and lo
+        // bitmaps DIFFER (i.e., the pixel actually belongs to the
+        // cell, not to shared chrome outline or neighbour cells).
+        const bool kHighlight3 = data.highlight3;
+        static const uint8_t kHour3HiBits[17][4] = {
+            { 0xFF, 0xFF, 0xFE, 0x00 }, { 0xFF, 0xFF, 0xFF, 0x00 },
+            { 0xFF, 0xFF, 0xFF, 0x00 }, { 0xFF, 0xFF, 0xFF, 0x80 },
+            { 0xFF, 0x1F, 0xFF, 0x80 }, { 0xFE, 0xEF, 0xFF, 0x80 },
+            { 0xFF, 0xEF, 0xFF, 0xC0 }, { 0xFF, 0x9F, 0xFF, 0xC0 },
+            { 0xFF, 0xEF, 0xFF, 0x80 }, { 0xFE, 0xEF, 0xFF, 0x00 },
+            { 0xFF, 0x1F, 0xFE, 0x00 }, { 0xFF, 0xFF, 0xFC, 0x00 },
+            { 0xFF, 0xFF, 0xF8, 0x00 }, { 0xFF, 0xFF, 0xF0, 0x00 },
+            { 0x00, 0x03, 0xE0, 0x00 }, { 0x00, 0x01, 0xC0, 0x00 },
+            { 0x00, 0x00, 0x80, 0x00 },
+        };
+        static const uint8_t kHour3LoBits[17][4] = {
+            { 0x00, 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00, 0x00 },
+            { 0x00, 0xE0, 0x00, 0x00 }, { 0x01, 0x10, 0x00, 0x00 },
+            { 0x00, 0x10, 0x00, 0x00 }, { 0x00, 0x60, 0x00, 0x00 },
+            { 0x00, 0x10, 0x00, 0x00 }, { 0x01, 0x10, 0x00, 0x00 },
+            { 0x00, 0xE0, 0x00, 0x00 }, { 0x00, 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00, 0x00 },
+        };
+        constexpr int kHour3X = 131, kHour3Y = 0, kHour3W = 26, kHour3H = 17;
+        for (int r = 0; r < kHour3H; ++r) {
+            for (int c = 0; c < kHour3W; ++c) {
+                const bool hi = kHour3HiBits[r][c >> 3] & (0x80 >> (c & 7));
+                const bool lo = kHour3LoBits[r][c >> 3] & (0x80 >> (c & 7));
+                if (hi == lo) continue;  // chrome/neighbour pixel — leave base
+                const bool on = kHighlight3 ? hi : lo;
+                display.drawPixel(ox + kHour3X + c, oy + kHour3Y + r,
+                                  on ? BLACK : WHITE);
+            }
+        }
+
+        // Hour 4 — TR chamfer cell, 19×24 at (x=148, y=9). CC-masked
+        // (hi from EVEN, lo from ODD); skip-equal leaves base pixels.
+        const bool kHighlight4 = data.highlight4;
+        static const uint8_t kHour4HiBits[24][3] = {
+            { 0x00, 0xC0, 0x00 }, { 0x01, 0xC0, 0x00 },
+            { 0x03, 0xE0, 0x00 }, { 0x07, 0xF0, 0x00 },
+            { 0x0F, 0xF0, 0x00 }, { 0x1F, 0xF8, 0x00 },
+            { 0x3F, 0xFC, 0x00 }, { 0x7F, 0xFC, 0x00 },
+            { 0xFF, 0xFE, 0x00 }, { 0xFE, 0x3F, 0x00 },
+            { 0xFE, 0xBF, 0x00 }, { 0xFD, 0xBF, 0x80 },
+            { 0xFD, 0xBF, 0xC0 }, { 0xFB, 0xBF, 0xC0 },
+            { 0xF8, 0x1F, 0xE0 }, { 0x7F, 0xBF, 0xC0 },
+            { 0x3F, 0xFF, 0x80 }, { 0x1F, 0xFF, 0x00 },
+            { 0x0F, 0xFE, 0x00 }, { 0x07, 0xFC, 0x00 },
+            { 0x03, 0xF8, 0x00 }, { 0x01, 0xF0, 0x00 },
+            { 0x00, 0xE0, 0x00 }, { 0x00, 0x40, 0x00 },
+        };
+        static const uint8_t kHour4LoBits[24][3] = {
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x01, 0xC0, 0x00 },
+            { 0x01, 0x40, 0x00 }, { 0x02, 0x40, 0x00 },
+            { 0x02, 0x40, 0x00 }, { 0x04, 0x40, 0x00 },
+            { 0x07, 0xE0, 0x00 }, { 0x00, 0x40, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+            { 0x00, 0x00, 0x00 }, { 0x00, 0x00, 0x00 },
+        };
+        constexpr int kHour4X = 148, kHour4Y = 9, kHour4W = 19, kHour4H = 24;
+        for (int r = 0; r < kHour4H; ++r) {
+            for (int c = 0; c < kHour4W; ++c) {
+                const bool hi = kHour4HiBits[r][c >> 3] & (0x80 >> (c & 7));
+                const bool lo = kHour4LoBits[r][c >> 3] & (0x80 >> (c & 7));
+                if (hi == lo) continue;
+                const bool on = kHighlight4 ? hi : lo;
+                display.drawPixel(ox + kHour4X + c, oy + kHour4Y + r,
+                                  on ? BLACK : WHITE);
+            }
+        }
     }
 
     // ── Hour-marker diamond ───────────────────────────────────────
