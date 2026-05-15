@@ -256,32 +256,44 @@ inline BiosyncData MockState::currentBiosync() const {
     // markerIndex stores hour-1 since kDialPos[] is 0-indexed.
     static constexpr int kMarkerHours[4] = { 2, 3, 6, 19 };
     d.markerIndex = kMarkerHours[frame_ % 4] - 1;
-    // Each tick rotate the highlight through all 24 hours.
-    const int active = (int)(frame_ % 24) + 1;
-    d.highlight1  = (active == 1);
-    d.highlight2  = (active == 2);
-    d.highlight3  = (active == 3);
-    d.highlight4  = (active == 4);
-    d.highlight5  = (active == 5);
-    d.highlight6  = (active == 6);
-    d.highlight7  = (active == 7);
-    d.highlight8  = (active == 8);
-    d.highlight9  = (active == 9);
-    d.highlight10 = (active == 10);
-    d.highlight11 = (active == 11);
-    d.highlight12 = (active == 12);
-    d.highlight13 = (active == 13);
-    d.highlight14 = (active == 14);
-    d.highlight15 = (active == 15);
-    d.highlight16 = (active == 16);
-    d.highlight17 = (active == 17);
-    d.highlight18 = (active == 18);
-    d.highlight19 = (active == 19);
-    d.highlight20 = (active == 20);
-    d.highlight21 = (active == 21);
-    d.highlight22 = (active == 22);
-    d.highlight23 = (active == 23);
-    d.highlight24 = (active == 24);
+    // Random 6-of-24 highlight pattern, refreshed every 5 ticks (dwell).
+    // Seed the PRNG with patternIdx so the same group repeats deterministically
+    // and changes when the dwell window advances.
+    const uint32_t patternIdx = frame_ / 5;
+    bool on[25] = {};  // 1..24
+    int pool[24];
+    for (int i = 0; i < 24; ++i) pool[i] = i + 1;
+    uint32_t rng = patternIdx * 2654435761u + 1u;
+    for (int i = 23; i > 24 - 6 - 1; --i) {
+        rng = rng * 1664525u + 1013904223u;
+        const int j = (int)((rng >> 16) % (uint32_t)(i + 1));
+        const int t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+        on[pool[i]] = true;
+    }
+    d.highlight1  = on[1];
+    d.highlight2  = on[2];
+    d.highlight3  = on[3];
+    d.highlight4  = on[4];
+    d.highlight5  = on[5];
+    d.highlight6  = on[6];
+    d.highlight7  = on[7];
+    d.highlight8  = on[8];
+    d.highlight9  = on[9];
+    d.highlight10 = on[10];
+    d.highlight11 = on[11];
+    d.highlight12 = on[12];
+    d.highlight13 = on[13];
+    d.highlight14 = on[14];
+    d.highlight15 = on[15];
+    d.highlight16 = on[16];
+    d.highlight17 = on[17];
+    d.highlight18 = on[18];
+    d.highlight19 = on[19];
+    d.highlight20 = on[20];
+    d.highlight21 = on[21];
+    d.highlight22 = on[22];
+    d.highlight23 = on[23];
+    d.highlight24 = on[24];
     return d;
 }
 
